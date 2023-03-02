@@ -20,8 +20,8 @@ console = Console()
 logo = """# HealerDB
 ## A CLI Tool to manage the database of Healer
 ### For Help, just run the command with the -h flag: `healerdb -h`
-#### Made with :brain:  and :muscle:  by [Autherix](https://github.com/autherix)
-##### By :handshake:  with: [Barbod](https://)
+##### Made with :brain:  and :muscle:  by [Autherix](https://github.com/autherix)
+###### By :handshake:  with: [Barbod](https://github.com/dark190)
 """
 
 # print the logo
