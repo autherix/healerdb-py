@@ -1,0 +1,92 @@
+#!/usr/bin/env /ptv/healer/healerdb-py/.venv/bin/python3
+# -*- coding: utf-8 -*-
+import os, sys, inspect
+import mod_dbquery as dbquery
+from rich.console import Console
+from rich.markdown import Markdown
+from rich.theme import Theme
+from rich.emoji import Emoji
+import mod_utils as myutils
+from mod_utils import *
+
+# Clear the terminal screen
+clear()
+
+# Set up rich
+console = Console()
+
+# Logo string
+logo = """# HealerDB
+## A CLI Tool to manage the database of Healer
+### For Help, just run the command with the -h flag: `healerdb -h`
+##### Made with :brain:  and :muscle:  by [Autherix](https://github.com/autherix)
+###### By :handshake:  with: [Barbod](https://github.com/dark190)
+"""
+
+# print the logo
+mdview(logo)
+
+seperator()
+
+# define connection string
+connHostPort = "localhost:27017"
+connUsername = "healerdb"
+connSecret = "hamidpapi"
+connstr = "mongodb://"+connUsername+":"+connSecret+"@"+connHostPort+"/"
+print("Connecting to mongodb server on: \n" + str(connHostPort))
+seperator()
+
+# Create a client to the mongodb database using the connstr
+client, err = dbquery.CreateClient(connstr)
+if err != None:
+    print("[red][-][/red] Main: CreateClient:", err)
+    sys.exit(1)
+
+# Purge all the databases except admin and config
+err = dbquery.PurgeDatabases(client)
+if err != None:
+    print("[red][-][/red] Main: PurgeDatabases:", err)
+    sys.exit(1)
+
+# Create a database called 'enum'
+dbname = "enum"
+err = dbquery.CreateDatabase(client, dbname)
+if err != None:
+    print("[red][-][/red] Main: CreateDatabase:", err)
+    # sys.exit(1)
+
+# Add a target called target1 to the database enum
+targetname = "target1"
+err = dbquery.AddTarget(client, dbname, targetname)
+if err != None:
+    print("[red][-][/red] Main: AddTarget:", err)
+
+# Add a target called target2 to the database enum
+targetname = "target2"
+err = dbquery.AddTarget(client, dbname, targetname)
+if err != None:
+    print("[red][-][/red] Main: AddTarget:", err)
+
+# Add a domain called domain1.com to the target target1
+domain = "domain1.com"
+err = dbquery.AddDomain(client, dbname, targetname, domain)
+if err != None:
+    print("[red][-][/red] Main: AddDomain:", err)
+
+# Add a domain called domain2.com to the target target1
+domain = "domain2.com"
+err = dbquery.AddDomain(client, dbname, targetname, domain)
+if err != None:
+    print("[red][-][/red] Main: AddDomain:", err)
+
+# Add a subdomain called sub1 to the domain domain1.com
+subdomain = "sub1"
+err = dbquery.AddSubdomain(client, dbname, targetname, domain, subdomain)
+if err != None:
+    print("[red][-][/red] Main: AddSubdomain:", err)
+
+# Add a subdomain called sub2 to the domain domain1.com
+subdomain = "sub2"
+err = dbquery.AddSubdomain(client, dbname, targetname, domain, subdomain)
+if err != None:
+    print("[red][-][/red] Main: AddSubdomain:", err)

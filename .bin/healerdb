@@ -2,7 +2,6 @@
 # -*- coding: utf-8 -*-
 import os, sys, inspect
 import mod_dbquery as dbquery
-from rich import print
 from rich.console import Console
 from rich.markdown import Markdown
 from rich.theme import Theme
@@ -37,66 +36,83 @@ connstr = "mongodb://"+connUsername+":"+connSecret+"@"+connHostPort+"/"
 print("Connecting to mongodb server on: \n" + str(connHostPort))
 seperator()
 
-# Create a client to the mongodb database using the connstr
+# Create a client and ping the database
 client, err = dbquery.CreateClient(connstr)
 if err != None:
-    print("[red][ERR][/red] Main: CreateClient: \n", err)
-    sys.exit(1)
+    print(parseError(err))
 
-# Purge all the databases except admin and config
-err = dbquery.PurgeDatabases(client)
+pingResult, err = dbquery.pingDB(client)
 if err != None:
-    print("[red][ERR][/red] Main: PurgeDatabases: \n", err)
-    # sys.exit(1)
+    print(parseError(err))
 
-# Create a database called 'enum'
+# Get a list of all databases on the server
+dblist, err = dbquery.GetDatabases(client)
+if err != None:
+    print(parseError(err))
+rprint("Databases on the server: " + str(dblist))
+
+# Purge all databases except admin, config and local
+# dblist, err = dbquery.PurgeDatabases(client)
+# if err != None:
+#     print(parseError(err))
+# rprint("Databases purged: " + str(dblist))
+
 dbname = "enum"
-err = dbquery.CreateDatabase(client, dbname)
-if err != None:
-    print("[red][ERR][/red] Main: CreateDatabase: \n", err)
-    # sys.exit(1)
-
-# Create a target called 'target1'
 collname = "target1"
-err = dbquery.AddTarget(client, dbname, collname)
-if err != None:
-    print("[red][ERR][/red] Main: AddTarget: \n", err)
-    # sys.exit(1)
+domain = "test1.com"
+subdomain = "test1"
 
-# Create a target called 'target2'
-collname = "target2"
-err = dbquery.AddTarget(client, dbname, collname)
+# Create a database called "enum"
+db, err = dbquery.CreateDatabase(client, "enum")
 if err != None:
-    print("[red][ERR][/red] Main: AddTarget: \n", err)
-    # sys.exit(1)
+    print(parseError(err))
+rprint("Database created: " + stylize("enum", "i", "blue"))
 
-# List all databases names and print them
-dbs, err = dbquery.GetDatabases(client)
-if err != None:
-    print("[red][ERR][/red] Main: GetDatabases: \n", err)
-    # sys.exit(1)
+# # Drop database called enum
+# dblist, err = dbquery.DropDatabase(client, dbname)
+# if err != None:
+#     print(parseError(err))
+# rprint("Database dropped: " + stylize(dbname, "i", "blue"))
 
-# List all collection names in database 'enum' and print them
-colls, err = dbquery.GetCollections(client, dbname)
-if err != None:
-    print("[red][ERR][/red] Main: GetCollections: \n", err)
-    # sys.exit(1)
-print("Main: GetCollections: colls: \n"+ str(colls))
+# # Create database "enum"
+# db, err = dbquery.CreateDatabase(client, dbname)
+# if err != None:
+#     print(parseError(err))
+# rprint("Database created: " + stylize(dbname, "i", "blue"))
 
-# Add a domain to database 'enum' and collection 'target1', domain = 'target1.com', use insertDomain function
-domain = "target1.com"
-collname = "target1"
-domain, err = dbquery.InsertDomain(client, dbname, collname, domain)
+# # Purge all collections in the database "enum"
+# purged_colls_parent_db, deleted_colls, err = dbquery.PurgeCollections(client, dbname)
+# if err != None:
+#     print(parseError(err))
+# rprint("Database: " + stylize(purged_colls_parent_db, "i", "blue") + " purged\tDeleted collections: " + str(deleted_colls))
+
+# Create a collection called "target1" in db "enum"
+collist, err = dbquery.CreateCollection(client, dbname, collname)
 if err != None:
-    print("[red][ERR][/red] Main: InsertDomain: \n", err)
-    # sys.exit(1)
-print("Main: InsertDomain: domain: \n"+ str(domain))
-    
-# Add subdomain to it using AddSubdomain function
-domain = "target1.com"
-collname = "target1"
-subdomain = "sub1"
-domain, err = dbquery.AddSubdomain(client, dbname, collname, domain, subdomain)
+    print(parseError(err))
+rprint("Collection created: " + stylize("target1", "i", "blue") + " in database: " + stylize(dbname, "i", "blue"))
+
+# Create a collection called "target2" in db "enum"
+collist, err = dbquery.CreateCollection(client, dbname, "target2")
 if err != None:
-    print("[red][ERR][/red] Main: AddSubdomain: \n", err)
-    # sys.exit(1)
+    print(parseError(err))
+rprint("Collection created: " + stylize("target2", "i", "blue") + " in database: " + stylize(dbname, "i", "blue"))
+
+# Get a list of all collections in the database "enum"
+collist, err = dbquery.GetCollections(client, dbname)
+if err != None:
+    print(parseError(err))
+rprint("Collections in the database: " + stylize(dbname, "i", "blue") + " are: " + str(collist))
+
+# Add a document to the collection "target1" in db "enum" `{"domain": "test1.com", "subdomains": [{"subdomain": "test1"}]}`
+doc_inserted_id, err = dbquery.AddDocument(client, dbname, collname, {"domain": domain, "subdomains": [{"subdomain": subdomain}]})
+if err != None:
+    print(parseError(err))
+rprint("Document added to collection: " + stylize(collname, "i", "blue") + " in database: " + stylize(dbname, "i", "blue") + "\nAdded document id: " + stylize(str(doc_inserted_id), "i", "blue"))
+
+# Remove the document with id "doc_inserted_id" from the collection "target1" in db "enum"
+removed_doc, removed_doc_id, err = dbquery.RemoveDocument(client, dbname, collname, doc_inserted_id)
+if err != None:
+    print(parseError(err))
+rprint("Document removed from collection: " + stylize(collname, "i", "blue") + " in database: " + stylize(dbname, "i", "blue") + "\nRemoved document id: " + stylize(str(removed_doc_id), "i", "blue") + "\nRemoved document: " + stylize(str(removed_doc), "i", "grey0"))
+
