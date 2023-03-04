@@ -6,6 +6,10 @@ from rich.console import Console
 from rich.markdown import Markdown
 from rich.theme import Theme
 from rich.emoji import Emoji
+from absl import app
+from absl import flags
+from absl.testing import absltest
+import fancyflags as ff
 import mod_utils as myutils
 from mod_utils import *
 
@@ -26,6 +30,14 @@ logo = """# HealerDB
 # print the logo
 mdview(logo)
 
+## Flags
+FLAGS = flags.FLAGS
+flags.DEFINE_string(name="host", default="localhost", help="The host of the database server")
+flags.DEFINE_string(name="port", default="27017", help="The port of the database server")
+flags.DEFINE_
+
+# Required Flags
+
 seperator()
 
 # define connection string
@@ -44,75 +56,7 @@ if err != None:
 pingResult, err = dbquery.pingDB(client)
 if err != None:
     print(parseError(err))
+rprint("Ping result: " + str(pingResult))
+seperator()
 
-# Get a list of all databases on the server
-dblist, err = dbquery.GetDatabases(client)
-if err != None:
-    print(parseError(err))
-rprint("Databases on the server: " + str(dblist))
-
-# Purge all databases except admin, config and local
-# dblist, err = dbquery.PurgeDatabases(client)
-# if err != None:
-#     print(parseError(err))
-# rprint("Databases purged: " + str(dblist))
-
-dbname = "enum"
-collname = "target1"
-domain = "test1.com"
-subdomain = "test1"
-
-# Create a database called "enum"
-db, err = dbquery.CreateDatabase(client, "enum")
-if err != None:
-    print(parseError(err))
-rprint("Database created: " + stylize("enum", "i", "blue"))
-
-# # Drop database called enum
-# dblist, err = dbquery.DropDatabase(client, dbname)
-# if err != None:
-#     print(parseError(err))
-# rprint("Database dropped: " + stylize(dbname, "i", "blue"))
-
-# # Create database "enum"
-# db, err = dbquery.CreateDatabase(client, dbname)
-# if err != None:
-#     print(parseError(err))
-# rprint("Database created: " + stylize(dbname, "i", "blue"))
-
-# # Purge all collections in the database "enum"
-# purged_colls_parent_db, deleted_colls, err = dbquery.PurgeCollections(client, dbname)
-# if err != None:
-#     print(parseError(err))
-# rprint("Database: " + stylize(purged_colls_parent_db, "i", "blue") + " purged\tDeleted collections: " + str(deleted_colls))
-
-# Create a collection called "target1" in db "enum"
-collist, err = dbquery.CreateCollection(client, dbname, collname)
-if err != None:
-    print(parseError(err))
-rprint("Collection created: " + stylize("target1", "i", "blue") + " in database: " + stylize(dbname, "i", "blue"))
-
-# Create a collection called "target2" in db "enum"
-collist, err = dbquery.CreateCollection(client, dbname, "target2")
-if err != None:
-    print(parseError(err))
-rprint("Collection created: " + stylize("target2", "i", "blue") + " in database: " + stylize(dbname, "i", "blue"))
-
-# Get a list of all collections in the database "enum"
-collist, err = dbquery.GetCollections(client, dbname)
-if err != None:
-    print(parseError(err))
-rprint("Collections in the database: " + stylize(dbname, "i", "blue") + " are: " + str(collist))
-
-# Add a document to the collection "target1" in db "enum" `{"domain": "test1.com", "subdomains": [{"subdomain": "test1"}]}`
-doc_inserted_id, err = dbquery.AddDocument(client, dbname, collname, {"domain": domain, "subdomains": [{"subdomain": subdomain}]})
-if err != None:
-    print(parseError(err))
-rprint("Document added to collection: " + stylize(collname, "i", "blue") + " in database: " + stylize(dbname, "i", "blue") + "\nAdded document id: " + stylize(str(doc_inserted_id), "i", "blue"))
-
-# Remove the document with id "doc_inserted_id" from the collection "target1" in db "enum"
-removed_doc, removed_doc_id, err = dbquery.RemoveDocument(client, dbname, collname, doc_inserted_id)
-if err != None:
-    print(parseError(err))
-rprint("Document removed from collection: " + stylize(collname, "i", "blue") + " in database: " + stylize(dbname, "i", "blue") + "\nRemoved document id: " + stylize(str(removed_doc_id), "i", "blue") + "\nRemoved document: " + stylize(str(removed_doc), "i", "grey0"))
-
+# 

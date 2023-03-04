@@ -27,11 +27,11 @@ def mdview(text):
 
 # function rprint to print a message with rich library, with a starter template for telling which file and function is printing the message
 def rprint(msg):
-    seperator(80, sepchr)
+    seperator(90, sepchr)
     # Print the message
-    diagMsg = "[bright_black]" + str(inspect.stack()[1].frame.f_code.co_filename) + ":" + str(inspect.stack()[1].frame.f_code.co_firstlineno) + "[/bright_black] > [green_yellow]" + str(inspect.stack()[1].frame.f_code.co_name + "[/green_yellow]")
-    print("▋[purple]diag[/purple] > " + diagMsg)
-    seperator(80, sepchr_up)
+    diagMsgStylized = stylize(str(inspect.stack()[1].frame.f_code.co_filename), "bright_black") + ":" + stylize(str(inspect.stack()[1].frame.f_code.co_firstlineno), "bright_black") + " > " + stylize(str(inspect.stack()[1].frame.f_code.co_name), "green_yellow")
+    print("▋[purple]diag[/purple] ▋ " + diagMsgStylized)
+    seperator(90, sepchr_up)
     print("[blue][b]LOG[/b][/blue] > " + str(msg))
     return
 

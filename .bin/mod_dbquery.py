@@ -27,6 +27,17 @@ def GetDatabases(client):
     except Exception as err:
         return None, err
 
+# function IsDatabase to check if a database exists on the server and return the result and error
+def IsDatabase(client, dbname):
+    try:
+        dblist = client.list_database_names()
+        if dbname in dblist:
+            return True, None
+        else:
+            return False, None
+    except Exception as err:
+        return None, err
+
 # function GetCollections to get a list of all collections in a database and return the list and error
 def GetCollections(client, db):
     try:
@@ -34,7 +45,18 @@ def GetCollections(client, db):
         return collist, None
     except Exception as err:
         return None, err
-    
+
+# function IsCollection to check if a collection exists in a database and return the result and error
+def IsCollection(client, db, coll):
+    try:
+        collist = client[db].list_collection_names()
+        if coll in collist:
+            return True, None
+        else:
+            return False, None
+    except Exception as err:
+        return None, err
+
 # Function PurgeDatabases to delete all databases except admin, config and local and return the list of deleted databases name and error
 def PurgeDatabases(client):
     try:
@@ -124,3 +146,59 @@ def RemoveDocument(client, dbname, collname, doc_id):
     except Exception as err:
         return None, None, err
 
+# function ListDocuments to list all documents in a collection in a database and return the list of documents id and error
+def ListDocuments(client, dbname, collname):
+    try:
+        db = client[dbname]
+        coll = db[collname]
+        docs = coll.find()
+        docs_ids_list = []
+        for doc in docs:
+            docs_ids_list.append(doc["_id"])
+        return docs_ids_list, None
+    except Exception as err:
+        return None, err
+
+# function IsDocument to check if a document exists in a collection in a database and return the result and error
+def IsDocument(client, dbname, collname, doc_id):
+    try:
+        docs_ids_list = ListDocuments(client, dbname, collname)
+        if doc_id in docs_ids_list:
+            return True, None
+        else:
+            return False, None
+    except Exception as err:
+        return None, err
+
+# function QueryDocuments to query documents in a collection in a database and return the list of documents id and error
+def QueryDocuments(client, dbname, collname, query):
+    try:
+        db = client[dbname]
+        coll = db[collname]
+        docs = coll.find(query)
+        docs_ids_list = []
+        for doc in docs:
+            docs_ids_list.append(doc["_id"])
+        return docs_ids_list, None
+    except Exception as err:
+        return None, err
+
+# function QueryDocumment to query one document in a collection in a database and return the document object and error
+def QueryDocument(client, dbname, collname, query):
+    try:
+        db = client[dbname]
+        coll = db[collname]
+        doc = coll.find_one(query)
+        return doc, None
+    except Exception as err:
+        return None, err
+
+# function UpdateDocument to update one document in a collection in a database and return the updated document object and error
+def UpdateDocument(client, dbname, collname, doc_id, new_doc):
+    try:
+        db = client[dbname]
+        coll = db[collname]
+        doc = coll.find_one_and_update({"_id": doc_id}, {"$set": new_doc})
+        return doc, None
+    except Exception as err:
+        return None, err
