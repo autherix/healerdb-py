@@ -1,0 +1,9 @@
+database:
+    type: "mongodb"
+    url:
+        base_url: "mongodb://"
+        host: "localhost"
+        port: 27017
+        creds:
+            username: "healerdb"
+            password: "hamidpapi"

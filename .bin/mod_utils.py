@@ -1,4 +1,4 @@
-import os, inspect
+import os, inspect, yaml, sys
 from rich import print
 from rich.console import Console
 from rich.markdown import Markdown
@@ -44,27 +44,32 @@ def extractFileName(path):
 
 # function parseError to parse the error object and return a string with a complete error message
 def parseError(err):
-    # Get all error info from the error object
-    errType = type(err).__name__
-    errArgs = err.args
-    errTraceback = err.__traceback__
+    if type(err) == str:
+        newErrorMsg = "[red][b]ERROR:[/b][/red]" + err
+    else:
+        print("Error type: " + str(type(err)))
+        print("error text: " + str(err))
+        # Get all error info from the error object
+        errType = type(err).__name__
+        errArgs = err.args
+        errTraceback = err.__traceback__
 
-    # Get the error message from the error object
-    errMessage = str(err)
+        # Get the error message from the error object
+        errMessage = str(err)
 
-    # Get the error line number from the error object
-    errLineNumber = errTraceback.tb_lineno
+        # Get the error line number from the error object
+        errLineNumber = errTraceback.tb_lineno if errTraceback else "None"
 
-    # Get the error file name from the error object
-    errFileName = errTraceback.tb_frame.f_code.co_filename
+        # Get the error file name from the error object
+        errFileName = errTraceback.tb_frame.f_code.co_filename if errTraceback else "None"
 
-    # Get the error function name from the error object
-    errFunctionName = errTraceback.tb_frame.f_code.co_name
+        # Get the error function name from the error object
+        errFunctionName = errTraceback.tb_frame.f_code.co_name if errTraceback else "None"
 
-    # Get the error line code from the error object
-    errLineCode = errTraceback.tb_frame.f_code.co_code
+        # Get the error line code from the error object
+        errLineCode = errTraceback.tb_frame.f_code.co_code if errTraceback else "None"
 
-    newErrorMsg = "[red][b]ERROR:[/b][/red] [b]" + errMessage + "[yellow]\nTraceback:   [yellow]Function: [/yellow][grey58]" + str(errFunctionName) + "[/grey58]\n\tFile: [/yellow][grey66]" + str(errFileName) + ":" + str(errLineNumber) + "[/grey66]"
+        newErrorMsg = "[red][b]ERROR:[/b][/red] [b]" + errMessage + "[yellow]\nTraceback:   [yellow]Function: [/yellow][grey58]" + str(errFunctionName) + "[/grey58]\n\tFile: [/yellow][grey66]" + str(errFileName) + ":" + str(errLineNumber) + "[/grey66]"
 
     return newErrorMsg
 
@@ -75,3 +80,43 @@ def stylize(text, *args):
         text = "[" + arg + "]" + text + "[/" + arg + "]"
     return text
 
+# function IsPath to check if a file or folder with the provided path exists, return True if the file exists and error 
+def IsPath(path, type="file"):
+    if type == "file":
+        try:
+            # Check if the file exists
+            if os.path.isfile(path):
+                return True, None
+            else:
+                return False, None
+        except Exception as err:
+            return None, err
+    elif type == "dir" or type == "directory":
+        try:
+            # Check if the file exists
+            if os.path.isdir(path):
+                return True, None
+            else:
+                return False, None
+        except Exception as err:
+            return None, err
+    else:
+        # raise a custom exception if the type is not valid and save it in the error variable
+        return None, Exception("Invalid type provided")
+
+# function loadYamlConfig to load the config file and return the config and error
+def loadYamlConfig(configfile= "/ptv/healer/healerdb-py/.bin/config/config.yaml"):
+    # Check if the config file exists
+    configExists, err = IsPath(configfile, "file")
+    if err:
+        return None, err
+    if configExists:
+        try:
+            # Load the config file as yaml
+            with open(configfile, 'r') as stream:
+                config = yaml.safe_load(stream)
+                return config, None
+        except Exception as err:
+            return None, err
+    else:
+        return None, Exception("Config file not found")

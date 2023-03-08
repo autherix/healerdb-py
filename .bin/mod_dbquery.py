@@ -10,7 +10,15 @@ def CreateClient(connstr):
         return client, None
     except Exception as err:
         return None, err
-    
+
+# fucntion ExitClient to close the client connection and return the result and error
+def ExitClient(client):
+    try:
+        client.close()
+        return True, None
+    except Exception as err:
+        return None, err
+
 # function pingDB to ping the database and return the ping result and error
 def pingDB(client):
     try:
