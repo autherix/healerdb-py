@@ -149,10 +149,15 @@ rprint("Nested subdomains of subdomain2 in domain1.com in collection target1: " 
 seperator()
 
 # Run ListPart function 
-docs, err = dbquery.GetInfo(client, "enum", "target1", '{"domain": "domain1.com"}')
+docs, err = dbquery.GetInfo(client, "enum", "target1", '{"domain": "domain1.com"}', "subdomains", '{"subdomain": "subdomain2"}', 'subdomain')
 if err != None:
     print(parseError(err))
 rprint("ListPart result: " + str(docs))
+# if docs is a list, try to convert it to a dictionary
+if isinstance(docs, list):
+    docs = docs[0]
+rprint("ListPart result: " + str(docs))
+seperator()
 
 # Exit the client
 exitResult, err = dbquery.ExitClient(client)

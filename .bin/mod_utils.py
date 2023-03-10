@@ -148,6 +148,7 @@ def ShiftLeft(dictionary, n=1):
 
 # function GetFromJson which gets a json object and some queries and paths ( All would be set as *args ) and returns the value of the query and error
 def GetFromJson(jsondoc, *args):
+    print("jsondoc before: " + str(jsondoc))
     # Iterate over the args
     for arg in args:
         seperator()
@@ -170,6 +171,12 @@ def GetFromJson(jsondoc, *args):
             print("jsondoc after: " + str(jsondoc))
             pass
         except Exception as err:
+            # If jsondoc is list
+            if type(jsondoc) == list:
+                if len(jsondoc) == 1:
+                    # Set jsondoc to the first element of the list
+                    jsondoc = jsondoc[0]
+                    print("jsondoc first element set: " + str(jsondoc))
             # If current jsondoc is a list, iterate over it and try to get the value of the query
             if type(jsondoc) == list:
                 print("jsondoc is a list")
@@ -211,3 +218,12 @@ def GetFromJson(jsondoc, *args):
             else:
                 return None, err
     return jsondoc, None
+
+# function dict2json2str which gets a dictionary and returns a json string
+def dict2json2str(dictionary):
+    # Convert the dictionary to json
+    jsondoc = json.dumps(dictionary)
+    # Convert the json to string
+    jsondoc = jsondoc.replace('"', '\\"')
+    # Return the string
+    return jsondoc
