@@ -1,9 +1,10 @@
-import os, inspect, yaml, sys
+import os, inspect, yaml, sys, json
 from rich import print
 from rich.console import Console
 from rich.markdown import Markdown
 from rich.theme import Theme
 from rich.emoji import Emoji
+from mongoquery import Query, QueryError
 
 sepchr = "▂"
 sepchr_up = "▔"
@@ -45,7 +46,7 @@ def extractFileName(path):
 # function parseError to parse the error object and return a string with a complete error message
 def parseError(err):
     if type(err) == str:
-        newErrorMsg = "[red][b]ERROR:[/b][/red]" + err
+        newErrorMsg = "[red][b]ERROR: [/b][/red]" + err
     else:
         print("Error type: " + str(type(err)))
         print("error text: " + str(err))
@@ -120,3 +121,93 @@ def loadYamlConfig(configfile= "/ptv/healer/healerdb-py/.bin/config/config.yaml"
             return None, err
     else:
         return None, Exception("Config file not found")
+
+# function NthKey which gets a dictionary and a number and returns a key-value pair of the nth key in the dictionary
+def NthKey(dictionary, n):
+    # Get the nth key in the dictionary
+    key = list(dictionary.keys())[n]
+    # Get the value of the nth key
+    value = dictionary[key]
+    # convert it to a dictionary and return it
+    return {key: value}
+
+# function ShiftLeft which gets a dictionary and a number and returns a dictionary with the keys shifted left by the number provided
+def ShiftLeft(dictionary, n=1):
+    # Get the keys of the dictionary
+    keys = list(dictionary.keys())
+    # Get the values of the dictionary
+    values = list(dictionary.values())
+    # Shift the keys left by n
+    newKeys = keys[n:]
+    # Shift the values left by n
+    newValues = values[n:]
+    # Create a new dictionary with the new keys and values
+    newDict = dict(zip(newKeys, newValues))
+    # Return the new dictionary
+    return newDict
+
+# function GetFromJson which gets a json object and some queries and paths ( All would be set as *args ) and returns the value of the query and error
+def GetFromJson(jsondoc, *args):
+    # Iterate over the args
+    for arg in args:
+        seperator()
+        print("arg: " + str(arg))
+        # If the arg is not a string, raise an error
+        if type(arg) != str:
+            return None, Exception("Invalid query provided")
+        
+        # Try to convert arg to json
+        try:
+            arg = json.loads(arg)
+            print("arg is json")
+            # On success, use arg to create the query
+            jsonq = Query(arg)
+            # Get the value of the query from jsondoc
+            jsondoc = list(filter(jsonq.match, jsondoc))
+            # If the jsondoc is empty, return None
+            if len(jsondoc) == 0:
+                return None, None
+            print("jsondoc after: " + str(jsondoc))
+            pass
+        except Exception as err:
+            # If current jsondoc is a list, iterate over it and try to get the value of the query
+            if type(jsondoc) == list:
+                print("jsondoc is a list")
+                # Iterate over the list, append the result of the query on each item to a new list
+                newJsondoc = []
+                for item in jsondoc:
+                    try:
+                        print("current item: " + str(item))
+                        # while item is a list, get the first item and save it in item
+                        while type(item) == list:
+                            item = item[0]
+                        item = item[arg]
+                        print("item after: " + str(item))
+                        # Append the result to the new list
+                        newJsondoc.append(item)
+                        print("whole jsondoc after: " + str(newJsondoc))
+                        pass
+                    except Exception as err:
+                        return None, err
+                jsondoc = newJsondoc
+                # jsonQuery = Query(arg)
+                # jsondoc = list(filter(jsonQuery.match, jsondoc))
+                # If the jsondoc is empty, return None
+                if len(jsondoc) == 0:
+                    print("jsondoc is empty")
+                    return None, None
+                print("jsondoc after: " + str(jsondoc))
+                pass
+
+            # If current jsondoc is a dictionary, try to get the value of the query from the current item
+            elif type(jsondoc) == dict:
+                print("jsondoc is a dict")
+                try:
+                    jsondoc = jsondoc[arg]
+                    print("jsondoc after: " + str(jsondoc))
+                    pass
+                except Exception as err:
+                    return None, err
+            else:
+                return None, err
+    return jsondoc, None

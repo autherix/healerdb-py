@@ -61,6 +61,99 @@ if err != None:
 rprint("Ping result: " + str(pingResult))
 seperator()
 
+# Purge the database
+purgeResult, err = dbquery.PurgeDatabases(client)
+if err != None:
+    print(parseError(err))
+rprint("Purge result: " + str(purgeResult))
+
+# Create a database called enum
+db, err = dbquery.CreateDatabase(client, "enum")
+if err != None:
+    print(parseError(err))
+rprint("Database created successfully")
+seperator()
+
+# Create a collection called target1
+collection, err = dbquery.CreateCollection(client, "enum", "target1")
+if err != None:
+    print(parseError(err))
+rprint("Collection created successfully")
+seperator()
+
+# Create a domain object called domain1.com
+domain1, err = dbquery.AddDomain(client, "enum", "target1", "domain1.com")
+if err != None:
+    print(parseError(err))
+rprint("Domain created successfully")
+
+# list domains in the collection target1
+docs, domainList, err = dbquery.ListDomains(client, "enum", "target1")
+if err != None:
+    print(parseError(err))
+rprint("Domains in collection target1: " + str(domainList))
+
+# List the subdomains of domain1.com in the collection target1
+docs, subdomainList, err = dbquery.ListSubdomains(client, "enum", "target1", "domain1.com")
+if err != None:
+    print(parseError(err))
+rprint("Subdomains of domain1.com in collection target1: " + str(subdomainList))
+
+# Add a new subdomain to domain1.com in the collection target1
+subdomain1, doc_id,  err = dbquery.AddSubdomain(client, "enum", "target1", "domain1.com", "subdomain1")
+if err != None:
+    print(parseError(err))
+rprint("Subdomain created successfully: " + stylize(str(subdomain1), "red"))
+
+# List the subdomains of domain1.com in the collection target1
+docs, subdomainList, err = dbquery.ListSubdomains(client, "enum", "target1", "domain1.com")
+if err != None:
+    print(parseError(err))
+rprint("Subdomains of domain1.com in collection target1: " + str(subdomainList))
+
+# Add a new subdomain to domain1.com in the collection target1
+subdomain2, doc_id, err = dbquery.AddSubdomain(client, "enum", "target1", "domain1.com", "subdomain2")
+if err != None:
+    print(parseError(err))
+rprint("Subdomain created successfully: " + stylize(str(subdomain2), "red"))
+
+# List the subdomains of domain1.com in the collection target1
+docs, subdomainList, err = dbquery.ListSubdomains(client, "enum", "target1", "domain1.com")
+if err != None:
+    print(parseError(err))
+rprint("Subdomains of domain1.com in collection target1: " + str(subdomainList))
+
+# Remove subdomain subdomain1 from domain1.com in the collection target1
+doc, doc_id, err = dbquery.RemoveSubdomain(client, "enum", "target1", "domain1.com", "subdomain1")
+if err != None:
+    print(parseError(err))
+rprint("Subdomain removed successfully: " + stylize(str(doc['subdomain']), "red"))
+
+# List nested subdomains of subdomain2 in domain1.com in the collection target1
+docs, subdomainList, err = dbquery.ListNestedSubdomains(client, "enum", "target1", "domain1.com", "subdomain2")
+if err != None:
+    print(parseError(err))
+rprint("Nested subdomains of subdomain2 in domain1.com in collection target1: " + str(subdomainList))
+
+# Add a new nested subdomain to subdomain2 in domain1.com in the collection target1
+subdomain3, doc_id, err = dbquery.AddNestedSubdomain(client, "enum", "target1", "domain1.com", "subdomain2", "subdomain3")
+if err != None:
+    print(parseError(err))
+rprint("Nested subdomain created successfully: " + stylize(str(subdomain3), "red"))
+
+# List nested subdomains of subdomain2 in domain1.com in the collection target1
+docs, subdomainList, err = dbquery.ListNestedSubdomains(client, "enum", "target1", "domain1.com", "subdomain2")
+if err != None:
+    print(parseError(err))
+rprint("Nested subdomains of subdomain2 in domain1.com in collection target1: " + str(subdomainList))
+seperator()
+
+# Run ListPart function 
+docs, err = dbquery.GetInfo(client, "enum", "target1", '{"domain": "domain1.com"}')
+if err != None:
+    print(parseError(err))
+rprint("ListPart result: " + str(docs))
+
 # Exit the client
 exitResult, err = dbquery.ExitClient(client)
 if err != None:
