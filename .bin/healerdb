@@ -1,6 +1,6 @@
 #!/usr/bin/env /ptv/healer/healerdb-py/.venv/bin/python3
 # -*- coding: utf-8 -*-
-import os, sys, inspect
+import os, sys, inspect, time
 import mod_dbquery as dbquery
 from rich.console import Console
 from rich.markdown import Markdown
@@ -103,7 +103,7 @@ rprint("Subdomains of domain1.com in collection target1: " + str(subdomainList))
 subdomain1, doc_id,  err = dbquery.AddSubdomain(client, "enum", "target1", "domain1.com", "subdomain1")
 if err != None:
     print(parseError(err))
-rprint("Subdomain created successfully: " + stylize(str(subdomain1), "red"))
+rprint("Subdomain created successfully: " + stylize(str(subdomain1), "blue"))
 
 # List the subdomains of domain1.com in the collection target1
 docs, subdomainList, err = dbquery.ListSubdomains(client, "enum", "target1", "domain1.com")
@@ -115,7 +115,7 @@ rprint("Subdomains of domain1.com in collection target1: " + str(subdomainList))
 subdomain2, doc_id, err = dbquery.AddSubdomain(client, "enum", "target1", "domain1.com", "subdomain2")
 if err != None:
     print(parseError(err))
-rprint("Subdomain created successfully: " + stylize(str(subdomain2), "red"))
+rprint("Subdomain created successfully: " + stylize(str(subdomain2), "blue"))
 
 # List the subdomains of domain1.com in the collection target1
 docs, subdomainList, err = dbquery.ListSubdomains(client, "enum", "target1", "domain1.com")
@@ -127,7 +127,7 @@ rprint("Subdomains of domain1.com in collection target1: " + str(subdomainList))
 doc, doc_id, err = dbquery.RemoveSubdomain(client, "enum", "target1", "domain1.com", "subdomain1")
 if err != None:
     print(parseError(err))
-rprint("Subdomain removed successfully: " + stylize(str(doc['subdomain']), "red"))
+rprint("Subdomain removed successfully: " + stylize(str(doc['subdomain']), "blue"))
 
 # List nested subdomains of subdomain2 in domain1.com in the collection target1
 docs, subdomainList, err = dbquery.ListNestedSubdomains(client, "enum", "target1", "domain1.com", "subdomain2")
@@ -139,25 +139,26 @@ rprint("Nested subdomains of subdomain2 in domain1.com in collection target1: " 
 subdomain3, doc_id, err = dbquery.AddNestedSubdomain(client, "enum", "target1", "domain1.com", "subdomain2", "subdomain3")
 if err != None:
     print(parseError(err))
-rprint("Nested subdomain created successfully: " + stylize(str(subdomain3), "red"))
+rprint("Nested subdomain created successfully: " + stylize(str(subdomain3), "blue"))
 
-# List nested subdomains of subdomain2 in domain1.com in the collection target1
-docs, subdomainList, err = dbquery.ListNestedSubdomains(client, "enum", "target1", "domain1.com", "subdomain2")
-if err != None:
-    print(parseError(err))
-rprint("Nested subdomains of subdomain2 in domain1.com in collection target1: " + str(subdomainList))
-seperator()
-
-# Run ListPart function 
-docs, err = dbquery.GetInfo(client, "enum", "target1", '{"domain": "domain1.com"}', "subdomains", '{"subdomain": "subdomain2"}', 'subdomain')
+# Run GetInfo function 
+docs, err = dbquery.GetInfo(client, "enum", "target1", '{"domain": "domain1.com"}', "subdomains", '{"subdomain": "subdomain2"}', 'subdomains')
 if err != None:
     print(parseError(err))
 rprint("ListPart result: " + str(docs))
 # if docs is a list, try to convert it to a dictionary
-if isinstance(docs, list):
-    docs = docs[0]
-rprint("ListPart result: " + str(docs))
 seperator()
+
+
+
+
+
+
+
+
+
+
+
 
 # Exit the client
 exitResult, err = dbquery.ExitClient(client)
@@ -165,3 +166,4 @@ if err != None:
     print(parseError(err))
 rprint("Client exit result: " + str(exitResult))
 seperator()
+exit(0)

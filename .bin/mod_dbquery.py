@@ -213,6 +213,8 @@ def UpdateDocument(client, dbname, collname, doc_id, new_doc):
         db = client[dbname]
         coll = db[collname]
         doc = coll.find_one_and_update({"_id": doc_id}, {"$set": new_doc})
+        # Find the updated document
+        doc = coll.find_one({"_id": doc_id})
         return doc, None
     except Exception as err:
         return None, err
@@ -621,3 +623,68 @@ def GetInfo(client, dbname, collname, filterjson=None, *args):
         return doc, None
     except Exception as err:
         return None, err
+
+# function SetInfo, gets client, dbname, collname, data as json string, a json filter (as string, e.g. `{"domain": "domain1.com"}`) and parts as *args (all members of args are strings), writes the data to the members of the parts and returns the members of the parts and error
+def NC_SetInfo(client, dbname, collname, data, init_query, *args):
+    try:
+        # Check if collection exists
+        collexists, err = IsCollection(client, dbname, collname)
+        if err:
+            return None, err
+        if not collexists:
+            return None, Exception("Collection does not exist")
+
+        try:
+            # Convert init_query to json if it is not empty
+            if init_query:
+                init_query = json.loads(init_query)
+        except Exception as err:
+            return None, Exception("Cannot convert init_query to json")
+        
+        # If init_query is provided
+        if init_query:
+            print("init_query is provided")
+            # Get the document object
+            doc, err = QueryDocument(client, dbname, collname, init_query)
+            if err:
+                return None, err
+            print("found doc: ", doc)
+            # if doc is empty then return None
+            if not doc:
+                return None, Exception("No document found with the provided initial query")
+            
+            # Now we have one document, so we pass it to SetInJson function to set the data in the members of the parts in args
+            newdoc, err = SetInJson(doc, data, *args)
+            if err:
+                return None, err
+            print("newdoc from SetInJson: ", newdoc)
+            # Update the document
+            doc, err = UpdateDocument(client, dbname, collname, doc["_id"], newdoc)
+            if err:
+                return None, err
+            print("updated doc: ", doc)
+            return doc, None
+        else:
+            # List all the documents in the collection
+            docs_ids, err = ListDocuments(client, dbname, collname)
+            if err:
+                return None, err
+            print("docs_ids: ", docs_ids)
+            # if docs_ids is empty then return None
+            if not docs_ids:
+                print("No documents found in the collection")
+                return None, Exception("No documents found in the collection")
+            # Iterate over the documents ids
+            for doc_id in docs_ids:
+                # Now we have a document id, so we pass it to SetInJson function to set the data in the members of the parts in args
+                newdoc, err = SetInJson(doc_id, data, *args)
+                if err:
+                    return None, err
+                # Update the document
+                doc, err = UpdateDocument(client, dbname, collname, doc["_id"], newdoc)
+                if err:
+                    return None, err
+            return docs_ids, None
+    except Exception as err:
+        return None, err
+

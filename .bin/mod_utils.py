@@ -1,4 +1,4 @@
-import os, inspect, yaml, sys, json
+import os, inspect, yaml, sys, json, gjson
 from rich import print
 from rich.console import Console
 from rich.markdown import Markdown
@@ -148,11 +148,11 @@ def ShiftLeft(dictionary, n=1):
 
 # function GetFromJson which gets a json object and some queries and paths ( All would be set as *args ) and returns the value of the query and error
 def GetFromJson(jsondoc, *args):
-    print("jsondoc before: " + str(jsondoc))
+    # print("jsondoc before: " + str(jsondoc))
     # Iterate over the args
     for arg in args:
-        seperator()
-        print("arg: " + str(arg))
+        # seperator()
+        # print("arg: " + str(arg))
         # If the arg is not a string, raise an error
         if type(arg) != str:
             return None, Exception("Invalid query provided")
@@ -160,7 +160,7 @@ def GetFromJson(jsondoc, *args):
         # Try to convert arg to json
         try:
             arg = json.loads(arg)
-            print("arg is json")
+            # print("arg is json")
             # On success, use arg to create the query
             jsonq = Query(arg)
             # Get the value of the query from jsondoc
@@ -168,7 +168,7 @@ def GetFromJson(jsondoc, *args):
             # If the jsondoc is empty, return None
             if len(jsondoc) == 0:
                 return None, None
-            print("jsondoc after: " + str(jsondoc))
+            # print("jsondoc after: " + str(jsondoc))
             pass
         except Exception as err:
             # If jsondoc is list
@@ -176,23 +176,23 @@ def GetFromJson(jsondoc, *args):
                 if len(jsondoc) == 1:
                     # Set jsondoc to the first element of the list
                     jsondoc = jsondoc[0]
-                    print("jsondoc first element set: " + str(jsondoc))
+                    # print("jsondoc first element set: " + str(jsondoc))
             # If current jsondoc is a list, iterate over it and try to get the value of the query
             if type(jsondoc) == list:
-                print("jsondoc is a list")
+                # print("jsondoc is a list")
                 # Iterate over the list, append the result of the query on each item to a new list
                 newJsondoc = []
                 for item in jsondoc:
                     try:
-                        print("current item: " + str(item))
+                        # print("current item: " + str(item))
                         # while item is a list, get the first item and save it in item
                         while type(item) == list:
                             item = item[0]
                         item = item[arg]
-                        print("item after: " + str(item))
+                        # print("item after: " + str(item))
                         # Append the result to the new list
                         newJsondoc.append(item)
-                        print("whole jsondoc after: " + str(newJsondoc))
+                        # print("whole jsondoc after: " + str(newJsondoc))
                         pass
                     except Exception as err:
                         return None, err
@@ -201,17 +201,17 @@ def GetFromJson(jsondoc, *args):
                 # jsondoc = list(filter(jsonQuery.match, jsondoc))
                 # If the jsondoc is empty, return None
                 if len(jsondoc) == 0:
-                    print("jsondoc is empty")
+                    # print("jsondoc is empty")
                     return None, None
-                print("jsondoc after: " + str(jsondoc))
+                # print("jsondoc after: " + str(jsondoc))
                 pass
 
             # If current jsondoc is a dictionary, try to get the value of the query from the current item
             elif type(jsondoc) == dict:
-                print("jsondoc is a dict")
+                # print("jsondoc is a dict")
                 try:
                     jsondoc = jsondoc[arg]
-                    print("jsondoc after: " + str(jsondoc))
+                    # print("jsondoc after: " + str(jsondoc))
                     pass
                 except Exception as err:
                     return None, err
@@ -219,11 +219,93 @@ def GetFromJson(jsondoc, *args):
                 return None, err
     return jsondoc, None
 
-# function dict2json2str which gets a dictionary and returns a json string
-def dict2json2str(dictionary):
-    # Convert the dictionary to json
-    jsondoc = json.dumps(dictionary)
-    # Convert the json to string
-    jsondoc = jsondoc.replace('"', '\\"')
-    # Return the string
-    return jsondoc
+def GetFromJson2(jsondoc, path):
+    # Use gjson to get the value of the query from jsondoc
+    jsondoc = gjson.Get(jsondoc, path)
+    # If the jsondoc is empty, return None
+    if len(jsondoc) == 0:
+        return None, None
+    return jsondoc, None
+
+# function AddToJson, gets jsondoc, data, and appends the data into the jsondoc. 
+def NC_AddToJson(jsondoc, data):
+    rprint("Function AddToJson called, jsondoc:\n" + str(jsondoc) + ",\n\ndata:\n" + str(data) + ",\n\ntype of jsondoc: " + str(type(jsondoc)) + ", type of data: " + str(type(data)))
+    try:
+        # try to convert jsondoc to json
+        try:
+            jsondoc = json.loads(jsondoc)
+            print("jsondoc converted to json")
+        except Exception as err:
+            pass
+        # If jsondoc is a dict
+        if type(jsondoc) == dict:
+            # try to convert data to json
+            try:
+                data = json.loads(data)
+                print("data converted to json")
+            except Exception as err:
+                pass
+            # If data is a dict
+            if type(data) == dict:
+                # Append the data to the jsondoc
+                jsondoc.update(data)
+                return jsondoc, None
+            else:
+                return None, Exception("Invalid data provided - Only dictionaries can be added to dictionaries!")
+        # If jsondoc is a list
+        elif type(jsondoc) == list:
+            # Append the data to the jsondoc
+            jsondoc.append(data)
+            return jsondoc, None
+        # If jsondoc is a string
+        else:
+            # Replace the document with the data
+            jsondoc = data
+            return jsondoc, None
+    except Exception as err:
+        return None, err
+
+# function SetInJson which gets a json object as jsondoc, a json object as data, and some queries and paths ( All would be set as *args ) and returns the updated json object with the data set in the query and error
+def NC_SetInJson(jsondoc, data, *args):
+    try:
+        # If args is empty, Use AddToJson to add the data to the jsondoc
+        if len(args) == 0:
+            return AddToJson(jsondoc, data)
+        
+        print("args: " + str(args))
+        arglen = len(args)
+        print("arglen: " + str(arglen))
+        jsondocArray = []
+
+        for i in range(arglen):
+            seperator()
+            # print("args[" + str(i) + "]: " + str(args[i]))
+
+            # Use GetFromJson
+            print("args[:" + str(i) + "]: " + str(args[:i+1]))
+            current_jsondoc, err = GetFromJson(jsondoc, *args[:i+1])
+            if err != None:
+                return None, err
+            # print("current_jsondoc: " + str(current_jsondoc))
+            jsondocArray.append(current_jsondoc)
+            print("jsondocArray[" + str(i) + "]: " + str(jsondocArray[i]))
+
+        # Use AddToJson to add the data to the last item in the jsondocArray
+        jsondocArray[-1], err = AddToJson(jsondocArray[-1], data)
+        if err != None:
+            return None, err
+        print("jsondocArray[-1]: " + str(jsondocArray[-1]))
+
+
+
+
+
+
+
+
+
+        rprint("exitting...")
+        exit(0)
+    except Exception as err:
+        return None, err
+
