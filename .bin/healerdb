@@ -1,6 +1,6 @@
 #!/usr/bin/env /ptv/healer/healerdb-py/.venv/bin/python3
 # -*- coding: utf-8 -*-
-import os, sys, inspect, time
+import os, sys, inspect, time, click
 import mod_dbquery as dbquery
 from rich.console import Console
 from rich.markdown import Markdown
@@ -12,6 +12,7 @@ from absl.testing import absltest
 # import fancyflags as ff
 import mod_utils as myutils
 from mod_utils import *
+# from mod_utils import clear, seperator, rprint, stylize, parseError, mdview
 import mod_flags as flagger
 
 # Clear the terminal screen
@@ -24,7 +25,7 @@ console = Console()
 logo = """# HealerDB
 ## A CLI Tool to manage the database of Healer
 ### For Help, just run the command with the -h flag: `healerdb -h`
-##### Made with :brain:  and :muscle:  by [Autherix](https://github.com/autherix)
+##### Made with :brain:  and :muscle:  by [StoicTopG](https://github.com/StoicTopG)
 ###### By :handshake:  with: [Barbod](https://github.com/dark190)
 """
 # print the logo
@@ -47,123 +48,121 @@ db_password = dbconfig["url"]["creds"]["password"]
 db_host = dbconfig["url"]["host"]
 db_port = str(dbconfig["url"]["port"])
 connstr = db_base_url + db_username + ":" + db_password + "@" + db_host + ":" + db_port + "/"
-rprint("Connecting to mongodb server on: \n" + db_host + ":" + db_port)
-seperator()
+def initdb():
+    rprint("Connecting to mongodb server on: \n" + db_host + ":" + db_port)
+    seperator()
+    # Create a client and ping the database
+    client, err = dbquery.CreateClient(connstr)
+    if err != None:
+        print(parseError(err))
 
-# Create a client and ping the database
-client, err = dbquery.CreateClient(connstr)
-if err != None:
-    print(parseError(err))
+    pingResult, err = dbquery.pingDB(client)
+    if err != None:
+        print(parseError(err))
+    rprint("Ping result: " + str(pingResult))
+    seperator()
 
-pingResult, err = dbquery.pingDB(client)
-if err != None:
-    print(parseError(err))
-rprint("Ping result: " + str(pingResult))
-seperator()
+    # Purge the database
+    purgeResult, err = dbquery.PurgeDatabases(client)
+    if err != None:
+        print(parseError(err))
+    rprint("Purge result: " + str(purgeResult))
 
-# Purge the database
-purgeResult, err = dbquery.PurgeDatabases(client)
-if err != None:
-    print(parseError(err))
-rprint("Purge result: " + str(purgeResult))
+    # Create a database called enum
+    db, err = dbquery.CreateDatabase(client, "enum")
+    if err != None:
+        print(parseError(err))
+    rprint("Database created successfully")
+    seperator()
 
-# Create a database called enum
-db, err = dbquery.CreateDatabase(client, "enum")
-if err != None:
-    print(parseError(err))
-rprint("Database created successfully")
-seperator()
+    # Create a collection called target1
+    collection, err = dbquery.CreateCollection(client, "enum", "target1")
+    if err != None:
+        print(parseError(err))
+    rprint("Collection created successfully")
+    seperator()
 
-# Create a collection called target1
-collection, err = dbquery.CreateCollection(client, "enum", "target1")
-if err != None:
-    print(parseError(err))
-rprint("Collection created successfully")
-seperator()
+    # Create a domain object called domain1.com
+    domain1, err = dbquery.AddDomain(client, "enum", "target1", "domain1.com")
+    if err != None:
+        print(parseError(err))
+    rprint("Domain created successfully")
 
-# Create a domain object called domain1.com
-domain1, err = dbquery.AddDomain(client, "enum", "target1", "domain1.com")
-if err != None:
-    print(parseError(err))
-rprint("Domain created successfully")
+    # list domains in the collection target1
+    docs, domainList, err = dbquery.ListDomains(client, "enum", "target1")
+    if err != None:
+        print(parseError(err))
+    rprint("Domains in collection target1: " + str(domainList))
 
-# list domains in the collection target1
-docs, domainList, err = dbquery.ListDomains(client, "enum", "target1")
-if err != None:
-    print(parseError(err))
-rprint("Domains in collection target1: " + str(domainList))
+    # List the subdomains of domain1.com in the collection target1
+    docs, subdomainList, err = dbquery.ListSubdomains(client, "enum", "target1", "domain1.com")
+    if err != None:
+        print(parseError(err))
+    rprint("Subdomains of domain1.com in collection target1: " + str(subdomainList))
 
-# List the subdomains of domain1.com in the collection target1
-docs, subdomainList, err = dbquery.ListSubdomains(client, "enum", "target1", "domain1.com")
-if err != None:
-    print(parseError(err))
-rprint("Subdomains of domain1.com in collection target1: " + str(subdomainList))
+    # Add a new subdomain to domain1.com in the collection target1
+    subdomain1, doc_id,  err = dbquery.AddSubdomain(client, "enum", "target1", "domain1.com", "subdomain1")
+    if err != None:
+        print(parseError(err))
+    rprint("Subdomain created successfully: " + stylize(str(subdomain1), "blue"))
 
-# Add a new subdomain to domain1.com in the collection target1
-subdomain1, doc_id,  err = dbquery.AddSubdomain(client, "enum", "target1", "domain1.com", "subdomain1")
-if err != None:
-    print(parseError(err))
-rprint("Subdomain created successfully: " + stylize(str(subdomain1), "blue"))
+    # List the subdomains of domain1.com in the collection target1
+    docs, subdomainList, err = dbquery.ListSubdomains(client, "enum", "target1", "domain1.com")
+    if err != None:
+        print(parseError(err))
+    rprint("Subdomains of domain1.com in collection target1: " + str(subdomainList))
 
-# List the subdomains of domain1.com in the collection target1
-docs, subdomainList, err = dbquery.ListSubdomains(client, "enum", "target1", "domain1.com")
-if err != None:
-    print(parseError(err))
-rprint("Subdomains of domain1.com in collection target1: " + str(subdomainList))
+    # Add a new subdomain to domain1.com in the collection target1
+    subdomain2, doc_id, err = dbquery.AddSubdomain(client, "enum", "target1", "domain1.com", "subdomain2")
+    if err != None:
+        print(parseError(err))
+    rprint("Subdomain created successfully: " + stylize(str(subdomain2), "blue"))
 
-# Add a new subdomain to domain1.com in the collection target1
-subdomain2, doc_id, err = dbquery.AddSubdomain(client, "enum", "target1", "domain1.com", "subdomain2")
-if err != None:
-    print(parseError(err))
-rprint("Subdomain created successfully: " + stylize(str(subdomain2), "blue"))
+    # List the subdomains of domain1.com in the collection target1
+    docs, subdomainList, err = dbquery.ListSubdomains(client, "enum", "target1", "domain1.com")
+    if err != None:
+        print(parseError(err))
+    rprint("Subdomains of domain1.com in collection target1: " + str(subdomainList))
 
-# List the subdomains of domain1.com in the collection target1
-docs, subdomainList, err = dbquery.ListSubdomains(client, "enum", "target1", "domain1.com")
-if err != None:
-    print(parseError(err))
-rprint("Subdomains of domain1.com in collection target1: " + str(subdomainList))
+    # Remove subdomain subdomain1 from domain1.com in the collection target1
+    doc, doc_id, err = dbquery.RemoveSubdomain(client, "enum", "target1", "domain1.com", "subdomain1")
+    if err != None:
+        print(parseError(err))
+    rprint("Subdomain removed successfully: " + stylize(str(doc['subdomain']), "blue"))
 
-# Remove subdomain subdomain1 from domain1.com in the collection target1
-doc, doc_id, err = dbquery.RemoveSubdomain(client, "enum", "target1", "domain1.com", "subdomain1")
-if err != None:
-    print(parseError(err))
-rprint("Subdomain removed successfully: " + stylize(str(doc['subdomain']), "blue"))
+    # List nested subdomains of subdomain2 in domain1.com in the collection target1
+    docs, subdomainList, err = dbquery.ListNestedSubdomains(client, "enum", "target1", "domain1.com", "subdomain2")
+    if err != None:
+        print(parseError(err))
+    rprint("Nested subdomains of subdomain2 in domain1.com in collection target1: " + str(subdomainList))
 
-# List nested subdomains of subdomain2 in domain1.com in the collection target1
-docs, subdomainList, err = dbquery.ListNestedSubdomains(client, "enum", "target1", "domain1.com", "subdomain2")
-if err != None:
-    print(parseError(err))
-rprint("Nested subdomains of subdomain2 in domain1.com in collection target1: " + str(subdomainList))
+    # Add a new nested subdomain to subdomain2 in domain1.com in the collection target1
+    subdomain3, doc_id, err = dbquery.AddNestedSubdomain(client, "enum", "target1", "domain1.com", "subdomain2", "subdomain3")
+    if err != None:
+        print(parseError(err))
+    rprint("Nested subdomain created successfully: " + stylize(str(subdomain3), "blue"))
 
-# Add a new nested subdomain to subdomain2 in domain1.com in the collection target1
-subdomain3, doc_id, err = dbquery.AddNestedSubdomain(client, "enum", "target1", "domain1.com", "subdomain2", "subdomain3")
-if err != None:
-    print(parseError(err))
-rprint("Nested subdomain created successfully: " + stylize(str(subdomain3), "blue"))
+    # Run GetInfo function 
+    docs, err = dbquery.GetInfo(client, "enum", "target1", '{"domain": "domain1.com"}', "subdomains", '{"subdomain": "subdomain2"}', 'subdomains')
+    if err != None:
+        print(parseError(err))
+    rprint("ListPart result: " + str(docs))
+    # if docs is a list, try to convert it to a dictionary
+    seperator()
+    # Exit the client
+    exitResult, err = dbquery.ExitClient(client)
+    if err != None:
+        print(parseError(err))
+    rprint("Client exit result: " + str(exitResult))
 
-# Run GetInfo function 
-docs, err = dbquery.GetInfo(client, "enum", "target1", '{"domain": "domain1.com"}', "subdomains", '{"subdomain": "subdomain2"}', 'subdomains')
-if err != None:
-    print(parseError(err))
-rprint("ListPart result: " + str(docs))
-# if docs is a list, try to convert it to a dictionary
-seperator()
+# Parse the arguments using click 
+@click.command()
+@click.argument('init', nargs=1, required=False)
+def main(init):
+    if init == "init":
+        initdb()
+    else:
+        print("Please enter a valid argument")
 
-
-
-
-
-
-
-
-
-
-
-
-# Exit the client
-exitResult, err = dbquery.ExitClient(client)
-if err != None:
-    print(parseError(err))
-rprint("Client exit result: " + str(exitResult))
-seperator()
-exit(0)
+if __name__ == "__main__":
+    main()
