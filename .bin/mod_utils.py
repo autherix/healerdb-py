@@ -28,11 +28,11 @@ def mdview(text):
 
 # function rprint to print a message with rich library, with a starter template for telling which file and function is printing the message
 def rprint(msg):
-    seperator(90, sepchr)
+    seperator(80, sepchr)
     # Print the message
     diagMsgStylized = stylize(str(inspect.stack()[1].frame.f_code.co_filename), "bright_black") + ":" + stylize(str(inspect.stack()[1].frame.f_code.co_firstlineno), "bright_black") + " > " + stylize(str(inspect.stack()[1].frame.f_code.co_name), "green_yellow")
     print("▋[purple]diag[/purple] ▋ " + diagMsgStylized)
-    seperator(90, sepchr_up)
+    seperator(80, sepchr_up)
     print("[blue][b]LOG[/b][/blue] > " + str(msg))
     return
 
@@ -148,7 +148,8 @@ def ShiftLeft(dictionary, n=1):
 
 # function GetFromJson which gets a json object and some queries and paths ( All would be set as *args ) and returns the value of the query and error
 def GetFromJson(jsondoc, *args):
-    # print("jsondoc before: " + str(jsondoc))
+    # rprint("jsondoc before: ")
+    # print(jsondoc)
     # Iterate over the args
     for arg in args:
         # seperator()
@@ -160,7 +161,7 @@ def GetFromJson(jsondoc, *args):
         # Try to convert arg to json
         try:
             arg = json.loads(arg)
-            # print("arg is json")
+            # rprint("arg is json")
             # On success, use arg to create the query
             jsonq = Query(arg)
             # Get the value of the query from jsondoc
@@ -171,6 +172,7 @@ def GetFromJson(jsondoc, *args):
             # print("jsondoc after: " + str(jsondoc))
             pass
         except Exception as err:
+            # rprint("arg is not json")
             # If jsondoc is list
             if type(jsondoc) == list:
                 if len(jsondoc) == 1:
@@ -226,86 +228,4 @@ def GetFromJson2(jsondoc, path):
     if len(jsondoc) == 0:
         return None, None
     return jsondoc, None
-
-# function AddToJson, gets jsondoc, data, and appends the data into the jsondoc. 
-def NC_AddToJson(jsondoc, data):
-    rprint("Function AddToJson called, jsondoc:\n" + str(jsondoc) + ",\n\ndata:\n" + str(data) + ",\n\ntype of jsondoc: " + str(type(jsondoc)) + ", type of data: " + str(type(data)))
-    try:
-        # try to convert jsondoc to json
-        try:
-            jsondoc = json.loads(jsondoc)
-            print("jsondoc converted to json")
-        except Exception as err:
-            pass
-        # If jsondoc is a dict
-        if type(jsondoc) == dict:
-            # try to convert data to json
-            try:
-                data = json.loads(data)
-                print("data converted to json")
-            except Exception as err:
-                pass
-            # If data is a dict
-            if type(data) == dict:
-                # Append the data to the jsondoc
-                jsondoc.update(data)
-                return jsondoc, None
-            else:
-                return None, Exception("Invalid data provided - Only dictionaries can be added to dictionaries!")
-        # If jsondoc is a list
-        elif type(jsondoc) == list:
-            # Append the data to the jsondoc
-            jsondoc.append(data)
-            return jsondoc, None
-        # If jsondoc is a string
-        else:
-            # Replace the document with the data
-            jsondoc = data
-            return jsondoc, None
-    except Exception as err:
-        return None, err
-
-# function SetInJson which gets a json object as jsondoc, a json object as data, and some queries and paths ( All would be set as *args ) and returns the updated json object with the data set in the query and error
-def NC_SetInJson(jsondoc, data, *args):
-    try:
-        # If args is empty, Use AddToJson to add the data to the jsondoc
-        if len(args) == 0:
-            return AddToJson(jsondoc, data)
-        
-        print("args: " + str(args))
-        arglen = len(args)
-        print("arglen: " + str(arglen))
-        jsondocArray = []
-
-        for i in range(arglen):
-            seperator()
-            # print("args[" + str(i) + "]: " + str(args[i]))
-
-            # Use GetFromJson
-            print("args[:" + str(i) + "]: " + str(args[:i+1]))
-            current_jsondoc, err = GetFromJson(jsondoc, *args[:i+1])
-            if err != None:
-                return None, err
-            # print("current_jsondoc: " + str(current_jsondoc))
-            jsondocArray.append(current_jsondoc)
-            print("jsondocArray[" + str(i) + "]: " + str(jsondocArray[i]))
-
-        # Use AddToJson to add the data to the last item in the jsondocArray
-        jsondocArray[-1], err = AddToJson(jsondocArray[-1], data)
-        if err != None:
-            return None, err
-        print("jsondocArray[-1]: " + str(jsondocArray[-1]))
-
-
-
-
-
-
-
-
-
-        rprint("exitting...")
-        exit(0)
-    except Exception as err:
-        return None, err
 

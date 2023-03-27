@@ -7,3 +7,32 @@ database:
         creds:
             username: "healerdb"
             password: "hamidpapi"
+click:
+    arguments:
+            - "name": "init"
+              "help": "initialize the database"
+            - "name": "create"
+              "help": "add sth to the database"
+              "arguments":
+                  - "name": "database"
+                  - "name": "collection"
+                  - "name": "document"
+            - "name": "read"
+              "help": "read sth from the database"
+              "arguments":
+                  - "name": "databases"
+                  - "name": "collections"
+                  - "name": "documents"
+                  - "name": "queried_documents"
+            - "name": "update"
+              "help": "update sth in the database"
+              "arguments":
+                  - "name": "database"
+                  - "name": "collection"
+                  - "name": "document"
+            - "name": "delete"
+              "help": "delete sth from the database"
+              "arguments":
+                  - "name": "database"
+                  - "name": "collection"
+                  - "name": "document"
