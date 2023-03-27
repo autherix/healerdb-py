@@ -14,8 +14,8 @@ def callback(
     """Callback function for the database command"""
     global client
     client = mod_dbquery.FastClient()
-    global IsJson
-    IsJson = OutIsJson
+    global gIsJson
+    gIsJson = OutIsJson
 
 
 
@@ -25,20 +25,74 @@ def list(
     ):
     """List all the databases"""
     result = mod_dbquery.GetDatabases(client)
-    if IsJson:
+
+    if IsJson or gIsJson:
         # Convert the list to a dictionary
         result = { "result": result }
         # Convert the dictionary to a JSON string
         result = json.dumps(result, indent=4)
 
-    print(result)    
+    print(result)
     
 @app.command()
-def create(dbname: str):
+def create(dbname: str,
+    IsJson: bool = typer.Option(False, "--json", "-j", help="Output in JSON format"),
+    ):
     """Create a database"""
     result = mod_dbquery.CreateDatabase(client, dbname)
+
+    if IsJson or gIsJson:
+        # Convert the list to a dictionary
+        result = { "result": str(result) }
+        # Convert the dictionary to a JSON string
+        result = json.dumps(result, indent=4)
+
     print(result)
 
+@app.command()
+def delete(dbname: str,
+    IsJson: bool = typer.Option(False, "--json", "-j", help="Output in JSON format"),
+    ):
+    """Delete a database"""
+    result = mod_dbquery.DropDatabase(client, dbname)
+
+    if IsJson or gIsJson:
+        # Convert the list to a dictionary
+        result = { "result": str(result) }
+        # Convert the dictionary to a JSON string
+        result = json.dumps(result, indent=4)
+
+    print(result)
+
+@app.command()
+def exists(dbname: str,
+    IsJson: bool = typer.Option(False, "--json", "-j", help="Output in JSON format"),
+    ):
+    """Check if a database exists"""
+    result = mod_dbquery.IsDatabase(client, dbname)
+
+    if IsJson or gIsJson:
+        # Convert the list to a dictionary
+        result = { "result": str(result) }
+        # Convert the dictionary to a JSON string
+        result = json.dumps(result, indent=4)
+
+    print(result)
+
+@app.command()
+def purge_all_databases(
+    IsJson: bool = typer.Option(False, "--json", "-j", help="Output in JSON format"),
+    ):
+    """Delete all databases"""
+    result = mod_dbquery.PurgeDatabases(client)
+
+    if IsJson or gIsJson:
+        # Convert the list to a dictionary
+        result = { "result": str(result) }
+        # Convert the dictionary to a JSON string
+        result = json.dumps(result, indent=4)
+
+    print(result)
 
 if __name__ == '__main__':
     app()

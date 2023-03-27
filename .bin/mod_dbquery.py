@@ -48,9 +48,9 @@ def GetDatabases(client):
 def IsDatabase(client, dbname):
     dblist = client.list_database_names()
     if dbname in dblist:
-        return True, None
+        return True
     else:
-        return False, None
+        return False
 
 # function GetCollections to get a list of all collections in a database and return the list and error
 def GetCollections(client, db):
@@ -80,7 +80,7 @@ def PurgeDatabases(client):
     for db in dblist:
         client.drop_database(db)
         deleted_dbs.append(db)
-    return deleted_dbs, None
+    return deleted_dbs
 
 # function CreateDatabase to create a database, create a collection called init
 def CreateDatabase(client, dbname):
@@ -101,7 +101,7 @@ def CreateCollection(client, dbname, collname):
 # function DropDatabase to drop a database and return the deleted database name and error 
 def DropDatabase(client, dbname):
     client.drop_database(dbname)
-    return dbname, None
+    return dbname
 
 # function DropCollection to drop a collection in a database and return the deleted collection's database name and it's own collection name and error
 def DropCollection(client, dbname, collname):

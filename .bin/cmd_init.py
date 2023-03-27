@@ -6,9 +6,7 @@ import mod_config
 def initdb(client):
 
     # Purge the database
-    purgeResult, err = dbquery.PurgeDatabases(client)
-    if err != None:
-        print(parseError(err))
+    purgeResult = dbquery.PurgeDatabases(client)
     rprint("Purge result: " + str(purgeResult))
 
     # Create a database called enum
