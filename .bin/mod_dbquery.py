@@ -55,7 +55,7 @@ def IsDatabase(client, dbname):
 # function GetCollections to get a list of all collections in a database and return the list and error
 def GetCollections(client, db):
     collist = client[db].list_collection_names()
-    return collist, None
+    return collist
 
 # function IsCollection to check if a collection exists in a database and return the result and error
 def IsCollection(client, db, coll):
@@ -96,7 +96,7 @@ def CreateCollection(client, dbname, collname):
     collist = db.list_collection_names()
     if collname not in collist:
         db.create_collection(collname)
-    return collname, None
+    return collname
 
 # function DropDatabase to drop a database and return the deleted database name and error 
 def DropDatabase(client, dbname):
@@ -107,7 +107,7 @@ def DropDatabase(client, dbname):
 def DropCollection(client, dbname, collname):
     db = client[dbname]
     db.drop_collection(collname)
-    return dbname, collname, None
+    return dbname, collname
 
 # function PurgeCollections to delete all collections in a database except init and return the list of deleted collections' dbname and deleted collections names (as an array) and error
 def PurgeCollections(client, dbname):
