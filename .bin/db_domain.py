@@ -11,7 +11,7 @@ app = typer.Typer(help="Manage the domains", no_args_is_help=True)
 def callback(
     OutIsJson: bool = typer.Option(False, "--json", "-j", help="Output in JSON format"),
     ):
-    """Callback function for the database command"""
+    """Callback function for the domain command"""
     global client
     client = mod_dbquery.FastClient()
     global gIsJson

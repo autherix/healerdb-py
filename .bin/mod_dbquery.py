@@ -372,9 +372,9 @@ def ListSubdomains(client, dbname, collname, domain):
     if not collexists:
         return "", []
     # Check if domain exists
-    docs, domainexists = IsDomain(client, dbname, collname, domain)
+    doc, domainexists = IsDomain(client, dbname, collname, domain)
     if not domainexists:
-        raise Exception("Domain does not exist")
+        return "", []
 
     # Get the list of subdomains (sample doc: `{"domain": "example.com", "subdomains:" [{"subdomain: "sub1.domain.com"}, {"subdomain: "sub2.domain.com"}]}`)
     doc = QueryDocument(client, dbname, collname, {"domain": domain})
@@ -382,42 +382,52 @@ def ListSubdomains(client, dbname, collname, domain):
     try:
         doc_subdomains = doc["subdomains"]
     except KeyError:
-        return docs, subdomains_list
+        return doc, subdomains_list
     for subdomain in doc_subdomains:
         subdomains_list.append(subdomain["subdomain"])
-    return docs, subdomains_list
+    return doc, subdomains_list
 
 # function IsSubdomain to check if a subdomain exists in a collection(target) in a database and return the result
 def IsSubdomain(client, dbname, collname, domain, subdomain):
-    docs, subdomains_list = ListSubdomains(client, dbname, collname, domain)
+    doc, subdomains_list = ListSubdomains(client, dbname, collname, domain)
     if subdomain in subdomains_list:
-        return docs, True
+        return doc, True
     else:
-        return docs, False
+        return doc, False
 
 # function AddSubdomain to add a subdomain to a collection(target) in a database and return the subdomain object's id on success
 def AddSubdomain(client: MongoClient, dbname: str, collname: str, domain: str, subdomain: str):
     # Check if subdomain exists
-    docs, subdomainexists = IsSubdomain(client, dbname, collname, domain, subdomain)
+    doc, subdomainexists = IsSubdomain(client, dbname, collname, domain, subdomain)
+    # Verified -> this doc is a real documnet
     if subdomainexists:
-        raise Exception("Subdomain already exists")
-    # Get the document object
-    doc = QueryDocument(client, dbname, collname, {"domain": domain})
+        return doc["_id"]
+    # Check if collection exists
+    collexists = IsCollection(client, dbname, collname)
+    if not collexists:
+        # Create collection
+        CreateCollection(client, dbname, collname)
+    # Check if domain exists
+    docs, domainexists = IsDomain(client, dbname, collname, domain)
+    if not domainexists:
+        # Add domain
+        doc_id = AddDomain(client, dbname, collname, domain)
+        doc = GetDomain(client, dbname, collname, domain)
     # Add subdomain
     try:
-        _ = doc["subdomains"]
+        doc_subdomains = doc["subdomains"]
     except KeyError:
         doc["subdomains"] = []
     doc["subdomains"].append({"subdomain": subdomain})
     doc = UpdateDocumentByID(client, dbname, collname, doc["_id"], doc)
-    return subdomain, doc["_id"]
+    return doc["_id"]
 
 # function RemoveSubdomain to remove one subdomain from a collection(target) in a database and return the deleted subdomain object's _id and object itself on success
 def RemoveSubdomain(client: MongoClient, dbname: str, collname: str, domain: str, subdomain: str):
     # Check if subdomain exists
     docs, subdomainexists = IsSubdomain(client, dbname, collname, domain, subdomain)
     if not subdomainexists:
-        raise Exception("Subdomain does not exist")
+        return "", ""
     # Get the document object
     doc = QueryDocument(client, dbname, collname, {"domain": domain})
     # Remove subdomain
@@ -426,7 +436,7 @@ def RemoveSubdomain(client: MongoClient, dbname: str, collname: str, domain: str
             doc["subdomains"].remove(subdomain_obj)
             doc = UpdateDocumentByID(client, dbname, collname, doc["_id"], doc)
             return subdomain_obj, doc["_id"]
-    raise Exception("Subdomain does not exist")
+    return "", ""
 
 # Function to list all nestedsubdomains in a collection(target) in a database and return the list of nestedsubdomains
 def ListNestedSubdomains(client, dbname, collname, domain, subdomain):

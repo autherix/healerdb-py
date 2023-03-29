@@ -32,16 +32,18 @@ def initdb(client):
     rprint("Subdomains of domain1.com in collection target1: " + str(subdomainList))
 
     # Add a new subdomain to domain1.com in the collection target1
-    subdomain1, doc_id = dbquery.AddSubdomain(client, "enum", "target1", "domain1.com", "subdomain1")
-    rprint("Subdomain created successfully: " + stylize(str(subdomain1), "blue"))
+    x_sub = "subdomain1"
+    doc_id = dbquery.AddSubdomain(client, "enum", "target1", "domain1.com", x_sub)
+    rprint("Subdomain created successfully: " + stylize(str(x_sub), "blue"))
 
     # List the subdomains of domain1.com in the collection target1
     docs, subdomainList = dbquery.ListSubdomains(client, "enum", "target1", "domain1.com")
     rprint("Subdomains of domain1.com in collection target1: " + str(subdomainList))
 
     # Add a new subdomain to domain1.com in the collection target1
-    subdomain2, doc_id = dbquery.AddSubdomain(client, "enum", "target1", "domain1.com", "subdomain2")
-    rprint("Subdomain created successfully: " + stylize(str(subdomain2), "blue"))
+    x_sub2 = "subdomain2"
+    doc_id = dbquery.AddSubdomain(client, "enum", "target1", "domain1.com", x_sub2)
+    rprint("Subdomain created successfully: " + stylize(str(x_sub2), "blue"))
 
     # List the subdomains of domain1.com in the collection target1
     docs, subdomainList = dbquery.ListSubdomains(client, "enum", "target1", "domain1.com")
