@@ -7,17 +7,17 @@ from mongoquery import Query, QueryError
 from bson.objectid import ObjectId
 from pymongo.collection import ReturnDocument
 
-# function CreateClient to create a client on mongodb server using the provided connection string, return client and error
+# function CreateClient to create a client on mongodb server using the provided connection string, return client
 def CreateClient(connstr):
     client = MongoClient(connstr)
     return client, None
 
-# fucntion ExitClient to close the client connection and return the result and error
+# fucntion ExitClient to close the client connection and return the result
 def ExitClient(client):
     client.close()
     return True, None
 
-# function pingDB to ping the database and return the ping result and error
+# function pingDB to ping the database and return the ping result
 def pingDB(client):
     pingResult = client.admin.command('ping')
     return pingResult, None
@@ -36,17 +36,17 @@ def conndb(connstr):
     return f"Ping result: {pingResult}", None
     seperator()
 
-# function FastClient to create a client on mongodb server using the provided connection string, return client and error
+# function FastClient to create a client on mongodb server using the provided connection string, return client
 def FastClient():
     client = MongoClient(mod_config.GetConnstr()[0])
     return client
 
-# function GetDatabases to get a list of all databases on the server and return the list and error
+# function GetDatabases to get a list of all databases on the server and return the list
 def GetDatabases(client):
     dblist = client.list_database_names()
     return dblist
 
-# function IsDatabase to check if a database exists on the server and return the result and error
+# function IsDatabase to check if a database exists on the server and return the result
 def IsDatabase(client, dbname):
     dblist = client.list_database_names()
     if dbname in dblist:
@@ -54,12 +54,12 @@ def IsDatabase(client, dbname):
     else:
         return False
 
-# function GetCollections to get a list of all collections in a database and return the list and error
+# function GetCollections to get a list of all collections in a database and return the list
 def GetCollections(client, db):
     collist = client[db].list_collection_names()
     return collist
 
-# function IsCollection to check if a collection exists in a database and return the result and error
+# function IsCollection to check if a collection exists in a database and return the result
 def IsCollection(client, db, coll):
     # Check if database exists
     dblist = client.list_database_names()
@@ -72,7 +72,7 @@ def IsCollection(client, db, coll):
     else:
         return False
 
-# Function PurgeDatabases to delete all databases except admin, config and local and return the list of deleted databases name and error
+# Function PurgeDatabases to delete all databases except admin, config and local and return the list of deleted databases name
 def PurgeDatabases(client):
     deleted_dbs = []
     dblist = client.list_database_names()
@@ -92,7 +92,7 @@ def CreateDatabase(client, dbname):
         db.create_collection("init")
     return db.name
 
-# Function CreateCollection to create a collection in a database and return the collection name and error
+# Function CreateCollection to create a collection in a database and return the collection name
 def CreateCollection(client, dbname, collname):
     db = client[dbname]
     collist = db.list_collection_names()
@@ -100,18 +100,18 @@ def CreateCollection(client, dbname, collname):
         db.create_collection(collname)
     return collname
 
-# function DropDatabase to drop a database and return the deleted database name and error 
+# function DropDatabase to drop a database and return the deleted database name 
 def DropDatabase(client, dbname):
     client.drop_database(dbname)
     return dbname
 
-# function DropCollection to drop a collection in a database and return the deleted collection's database name and it's own collection name and error
+# function DropCollection to drop a collection in a database and return the deleted collection's database name and it's own collection name
 def DropCollection(client, dbname, collname):
     db = client[dbname]
     db.drop_collection(collname)
     return dbname, collname
 
-# function PurgeCollections to delete all collections in a database except init and return the list of deleted collections' dbname and deleted collections names (as an array) and error
+# function PurgeCollections to delete all collections in a database except init and return the list of deleted collections' dbname and deleted collections names (as an array)
 def PurgeCollections(client, dbname):
     deleted_colls = []
     db = client[dbname]
@@ -122,7 +122,7 @@ def PurgeCollections(client, dbname):
         deleted_colls.append(coll)
     return deleted_colls
 
-# function AddDocument to add a document to a collection in a database and return the document object's id on success and error
+# function AddDocument to add a document to a collection in a database and return the document object's id on success
 def AddDocument(client, dbname, collname, doc):
     db = client[dbname]
     coll = db[collname]
@@ -135,7 +135,7 @@ def AddDocument(client, dbname, collname, doc):
     doc_id = coll.insert_one(doc).inserted_id
     return doc_id
 
-# function RemoveDocument to remove one document from a collection in a database and return the deleted document object's _id and object itself on success and error
+# function RemoveDocument to remove one document from a collection in a database and return the deleted document object's _id and object itself on success
 def RemoveDocument(client, dbname, collname, doc_id):
     db = client[dbname]
     coll = db[collname]
@@ -145,7 +145,7 @@ def RemoveDocument(client, dbname, collname, doc_id):
     removed_doc_id = doc["_id"]
     return doc
 
-# function ListDocuments to list all documents in a collection in a database and return the list of documents id and error
+# function ListDocuments to list all documents in a collection in a database and return the list of documents id
 def ListDocuments(client, dbname, collname):
     db = client[dbname]
     coll = db[collname]
@@ -155,7 +155,7 @@ def ListDocuments(client, dbname, collname):
         docs_ids_list.append(doc["_id"])
     return docs_ids_list
 
-# function IsDocument to check if a document exists in a collection in a database and return the result and error
+# function IsDocument to check if a document exists in a collection in a database and return the result
 def IsDocument(client, dbname, collname, doc_id):
     docs_ids_list = ListDocuments(client, dbname, collname)
     for doc in docs_ids_list:
@@ -163,7 +163,7 @@ def IsDocument(client, dbname, collname, doc_id):
             return True
     return False
 
-# function QueryDocuments to query documents in a collection in a database and return the list of documents id and error
+# function QueryDocuments to query documents in a collection in a database and return the list of documents id
 def QueryDocuments(client, dbname, collname, query):
     db = client[dbname]
     coll = db[collname]
@@ -179,7 +179,7 @@ def QueryDocuments(client, dbname, collname, query):
         docs_ids_list.append(doc["_id"])
     return docs_ids_list
 
-# function QueryDocumment to query one document in a collection in a database and return the document object and error
+# function QueryDocumment to query one document in a collection in a database and return the document object
 def QueryDocument(client, dbname, collname, query):
     db = client[dbname]
     coll = db[collname]
@@ -192,7 +192,7 @@ def QueryDocument(client, dbname, collname, query):
     doc = coll.find_one(query)
     return doc
 
-# function UpdateDocument to update one document in a collection in a database and return the updated document object and error
+# function UpdateDocument to update one document in a collection in a database and return the updated document object
 def UpdateDocumentWithQuery(client, dbname, collname, query, new_doc):
     db = client[dbname]
     coll = db[collname]
@@ -211,14 +211,14 @@ def UpdateDocumentWithQuery(client, dbname, collname, query, new_doc):
     doc = coll.find_one_and_update(query, {"$set": new_doc}, return_document=ReturnDocument.AFTER)
     return doc
 
-# function UpdateDocument to update one document in a collection in a database and return the updated document object and error
+# function UpdateDocument to update one document in a collection in a database and return the updated document object
 def UpdateDocumentByID(client, dbname, collname, doc_id, new_doc):
     # Use UpdateDocumentWithQuery to update the document
     query = {"_id": ObjectId(doc_id)}
     doc = UpdateDocumentWithQuery(client, dbname, collname, query, new_doc)
     return doc
 
-# function UpdateDocumentsWithQuery to update documents in a collection in a database and return the updated documents objects and error
+# function UpdateDocumentsWithQuery to update documents in a collection in a database and return the updated documents objects
 def UpdateDocumentsWithQuery(client, dbname, collname, query, new_doc):
     db = client[dbname]
     coll = db[collname]
@@ -241,7 +241,22 @@ def UpdateDocumentsWithQuery(client, dbname, collname, query, new_doc):
         updated_docs.append(updated_doc)
     return updated_docs
 
-# function ListDomains to list all domains in a collection(target) in a database and return the list of domains and error
+# function PurgeDocuments to remove all documents in a collection in a database and return the list of deleted documents IDs
+def PurgeDocuments(client, dbname, collname):
+    # Check if collection exists
+    collexists = IsCollection(client, dbname, collname)
+    if not collexists:
+        return ""
+    db = client[dbname]
+    coll = db[collname]
+    docs = coll.find()
+    deleted_docs = []
+    for doc in docs:
+        deleted_doc = RemoveDocument(client, dbname, collname, doc["_id"])
+        deleted_docs.append(deleted_doc["_id"])
+    return deleted_docs
+
+# function ListDomains to list all domains in a collection(target) in a database and return the list of domains
 def ListDomains(client, dbname, collname):
     # Check if collection exists
     collexists = IsCollection(client, dbname, collname)
@@ -256,7 +271,7 @@ def ListDomains(client, dbname, collname):
             domains_list.append(doc["domain"])
     return docs, domains_list
 
-# function IsDomain to check if a domain exists in a collection(target) in a database and return the result and error
+# function IsDomain to check if a domain exists in a collection(target) in a database and return the result
 def IsDomain(client, dbname, collname, domain):
     docs, domains_list = ListDomains(client, dbname, collname)
     if domain in domains_list:
@@ -264,50 +279,98 @@ def IsDomain(client, dbname, collname, domain):
     else:
         return docs, False
 
-# function AddDomain to add a domain to a collection(target) in a database and return the domain object's id on success and error
+# function AddDomain to add a domain to a collection(target) in a database and return the domain object's id on success
 def AddDomain(client, dbname, collname, domain):
     # Check if collection exists
     collexists = IsCollection(client, dbname, collname)
     if not collexists:
-        return None, "Collection does not exist"
+        # Create db and collection
+        CreateCollection(client, dbname, collname)
+        
     # Check if domain exists
     docs, domainexists = IsDomain(client, dbname, collname, domain)
     if domainexists:
-        return None, "Domain already exists"
+        return ""
     # Add domain
     doc = {"domain": domain}
     doc_id = AddDocument(client, dbname, collname, doc)
     return doc_id
 
-# function RemoveDomain to remove one domain from a collection(target) in a database and return the deleted domain object's _id and object itself on success and error
+# function GetDomain to get one domain from a collection(target) in a database and return the domain object, Use QueryDocument to get the domain object
+def GetDomain(client, dbname, collname, domain):
+    # Check if collection exists
+    collexists = IsCollection(client, dbname, collname)
+    if not collexists:
+        return ""
+    # Check if domain exists
+    docs, domainexists = IsDomain(client, dbname, collname, domain)
+    if not domainexists:
+        return ""
+    # Get domain
+    doc = QueryDocument(client, dbname, collname, {"domain": domain})
+    return doc
+
+# function RemoveDomain to remove one domain from a collection(target) in a database and return the deleted domain object's _id and object itself on success
 def RemoveDomain(client, dbname, collname, domain):
     # Check if collection exists
-    collexists, err = IsCollection(client, dbname, collname)
-    if err:
-        return None, None, err
+    collexists = IsCollection(client, dbname, collname)
     if not collexists:
-        return None, None, "Collection does not exist"
+        return ""
     # Check if domain exists
-    docs, domainexists, err = IsDomain(client, dbname, collname, domain)
-    if err:
-        return None, None, err
+    docs, domainexists = IsDomain(client, dbname, collname, domain)
     if not domainexists:
-        return None, None, "Domain does not exist"
+        return ""
     # Remove domain
-    doc, doc_id, err = QueryDocument(client, dbname, collname, {"domain": domain})
-    if err:
-        return None, None, err
-    doc, removed_doc_id, err = RemoveDocument(client, dbname, collname, doc_id)
-    if err:
-        return None, None, err
-    return doc, removed_doc_id, None
+    doc = QueryDocument(client, dbname, collname, {"domain": domain})
+    doc_id = doc["_id"]
+    doc = RemoveDocument(client, dbname, collname, doc_id)
+    return doc, doc["_id"]
 
-# function ListSubdomains to list all subdomains in a collection(target) in a database and return the list of subdomains and error
+# function InitDomain creates a domain if not exists, if exists, removes all sub-parts in it and returns the document object
+def InitDomain(client, dbname, collname, domain):
+    # Check if collection exists
+    collexists = IsCollection(client, dbname, collname)
+    if not collexists:
+        # Create collection
+        CreateCollection(client, dbname, collname)
+        
+    # Check if domain exists
+    docs, domainexists = IsDomain(client, dbname, collname, domain)
+    if domainexists:
+        # Remove domain Using RemoveDomain
+        deleted_doc, doc_id = RemoveDomain(client, dbname, collname, domain)
+        # Add domain
+        doc = {'_id': ObjectId(doc_id), 'domain': domain, 'subdomains': []}
+        # Add domain
+        doc_id = AddDomain(client, dbname, collname, domain)
+    else:
+        # Add domain
+        doc = {"domain": domain, "subdomains": []}
+        doc_id = AddDomain(client, dbname, collname, domain)
+        doc = GetDomain(client, dbname, collname, domain)
+    return doc, doc_id
+
+# function PurgeDomains to remove all domains in a collection(target) in a database and return the list of deleted domains ['domain']
+def PurgeDomains(client, dbname, collname):
+    # Check if collection exists
+    collexists = IsCollection(client, dbname, collname)
+    if not collexists:
+        return ""
+    db = client[dbname]
+    coll = db[collname]
+    docs = coll.find()
+    deleted_docs = []
+    for doc in docs:
+        deleted_doc, deletd_doc_id = RemoveDomain(client, dbname, collname, doc["domain"])
+        deleted_docs.append(deleted_doc["domain"])
+    return deleted_docs
+
+# function ListSubdomains to list all subdomains in a collection(target) in a database and return the list of subdomains
 def ListSubdomains(client, dbname, collname, domain):
     # Check if collection exists
     collexists = IsCollection(client, dbname, collname)
     if not collexists:
-        return None, None, "Collection does not exist"
+        return "", []
     # Check if domain exists
     docs, domainexists = IsDomain(client, dbname, collname, domain)
     if not domainexists:
@@ -324,7 +387,7 @@ def ListSubdomains(client, dbname, collname, domain):
         subdomains_list.append(subdomain["subdomain"])
     return docs, subdomains_list
 
-# function IsSubdomain to check if a subdomain exists in a collection(target) in a database and return the result and error
+# function IsSubdomain to check if a subdomain exists in a collection(target) in a database and return the result
 def IsSubdomain(client, dbname, collname, domain, subdomain):
     docs, subdomains_list = ListSubdomains(client, dbname, collname, domain)
     if subdomain in subdomains_list:
@@ -332,7 +395,7 @@ def IsSubdomain(client, dbname, collname, domain, subdomain):
     else:
         return docs, False
 
-# function AddSubdomain to add a subdomain to a collection(target) in a database and return the subdomain object's id on success and error
+# function AddSubdomain to add a subdomain to a collection(target) in a database and return the subdomain object's id on success
 def AddSubdomain(client: MongoClient, dbname: str, collname: str, domain: str, subdomain: str):
     # Check if subdomain exists
     docs, subdomainexists = IsSubdomain(client, dbname, collname, domain, subdomain)
@@ -349,7 +412,7 @@ def AddSubdomain(client: MongoClient, dbname: str, collname: str, domain: str, s
     doc = UpdateDocumentByID(client, dbname, collname, doc["_id"], doc)
     return subdomain, doc["_id"]
 
-# function RemoveSubdomain to remove one subdomain from a collection(target) in a database and return the deleted subdomain object's _id and object itself on success and error
+# function RemoveSubdomain to remove one subdomain from a collection(target) in a database and return the deleted subdomain object's _id and object itself on success
 def RemoveSubdomain(client: MongoClient, dbname: str, collname: str, domain: str, subdomain: str):
     # Check if subdomain exists
     docs, subdomainexists = IsSubdomain(client, dbname, collname, domain, subdomain)
@@ -365,12 +428,12 @@ def RemoveSubdomain(client: MongoClient, dbname: str, collname: str, domain: str
             return subdomain_obj, doc["_id"]
     raise Exception("Subdomain does not exist")
 
-# Function to list all nestedsubdomains in a collection(target) in a database and return the list of nestedsubdomains and error
+# Function to list all nestedsubdomains in a collection(target) in a database and return the list of nestedsubdomains
 def ListNestedSubdomains(client, dbname, collname, domain, subdomain):
     # Check if collection exists
     collexists = IsCollection(client, dbname, collname)
     if not collexists:
-        raise Exception("Collection does not exist")
+        return "", []
     # Check if domain exists
     docs, domainexists = IsDomain(client, dbname, collname, domain)
     if not domainexists:
@@ -397,7 +460,7 @@ def ListNestedSubdomains(client, dbname, collname, domain, subdomain):
                 nestedsubdomains_list.append(nestedsubdomain["subdomain"])
     return docs, nestedsubdomains_list
 
-# function IsNestedSubdomain to check if a nestedsubdomain exists in a collection(target) in a database and return the result and error
+# function IsNestedSubdomain to check if a nestedsubdomain exists in a collection(target) in a database and return the result
 def IsNestedSubdomain(client, dbname, collname, domain, subdomain, nestedsubdomain):
     docs, nestedsubdomains_list = ListNestedSubdomains(client, dbname, collname, domain, subdomain)
     if nestedsubdomain in nestedsubdomains_list:
@@ -405,7 +468,7 @@ def IsNestedSubdomain(client, dbname, collname, domain, subdomain, nestedsubdoma
     else:
         return docs, False
     
-# function AddNestedSubdomain to add a nestedsubdomain to a collection(target) in a database and return the nestedsubdomain object's id on success and error
+# function AddNestedSubdomain to add a nestedsubdomain to a collection(target) in a database and return the nestedsubdomain object's id on success
 def AddNestedSubdomain(client, dbname, collname, domain, subdomain, nestedsubdomain):
     # type: (CosmosClient, str, str, str, str, str) -> Tuple[str, str]
     # Check if nestedsubdomain exists
@@ -426,7 +489,7 @@ def AddNestedSubdomain(client, dbname, collname, domain, subdomain, nestedsubdom
             return nestedsubdomain, doc["_id"]
     raise Exception("Subdomain does not exist")
 
-# function RemoveNestedSubdomain to remove one nestedsubdomain from a collection(target) in a database and return the deleted nestedsubdomain object's _id and object itself on success and error
+# function RemoveNestedSubdomain to remove one nestedsubdomain from a collection(target) in a database and return the deleted nestedsubdomain object's _id and object itself on success
 def RemoveNestedSubdomain(client, dbname, collname, domain, subdomain, nestedsubdomain):
     # Check if nestedsubdomain exists
     docs, nestedsubdomainexists, err = IsNestedSubdomain(client, dbname, collname, domain, subdomain, nestedsubdomain)
@@ -454,35 +517,29 @@ def RemoveNestedSubdomain(client, dbname, collname, domain, subdomain, nestedsub
                     return nestedsubdomain_obj, doc["_id"], None
     return None, None, "NestedSubdomain does not exist"
 
-# function ListPart, gets client, dbname, collname and parts as *args and returns the members of the parts and error
+# function ListPart, gets client, dbname, collname and parts as *args and returns the members of the parts
 def ListPart(client, dbname, collname, *args, **kwargs):
     seperator()
     # Check if collection exists
-    collexists, err = IsCollection(client, dbname, collname)
-    if err:
-        return None, err
+    collexists = IsCollection(client, dbname, collname)
     if not collexists:
-        return None, Exception("Collection does not exist")
+        return ""
     
     # if len of kwargs is 0, then return all the documents in the collection
     print("kwargs: ", kwargs)
     if len(kwargs) == 0:
-        docs_ids, err = ListDocuments(client, dbname, collname)
-        if err:
-            return None, err
+        docs_ids = ListDocuments(client, dbname, collname)
         print("no kwargs found, returning all docs inside collection...")
-        return docs_ids, None
+        return docs_ids
 
     # print the first pair in kwargs, use NthKey function
     print("NthKey(kwargs, 0): ", NthKey(kwargs, 0))
 
-    doc, err = QueryDocument(client, dbname, collname, NthKey(kwargs, 0))
-    if err:
-        return None, err
+    doc = QueryDocument(client, dbname, collname, NthKey(kwargs, 0))
     print("data after filter with kwargs[0]: ", doc)
     # if doc is empty then return None
     if not doc:
-        return None, Exception("No document found")
+        return ""
     doc_id = doc["_id"]
     # shift kwargs 1 to the left
     kwargs = ShiftLeft(kwargs, 1)
@@ -490,7 +547,7 @@ def ListPart(client, dbname, collname, *args, **kwargs):
 
     # if len of args is 0, then return the document
     if len(args) == 0:
-        return doc, None
+        return doc
     
     # iterate over the args and get the members of the parts in both args and kwargs
     for i, arg in enumerate(args):
@@ -499,34 +556,34 @@ def ListPart(client, dbname, collname, *args, **kwargs):
             doc = doc[arg]
             print("current doc after selection: ", doc)
         except KeyError as err:
-            return None, Exception("Cannot find the part {} in the document".format(arg))
+            return ""
         except TypeError as err:
-            return None, Exception("Cannot find the part {} in the document".format(arg))
+            return ""
         # if len of kwargs is 0, then return the doc
         print("kwargs: ", kwargs)
         if len(kwargs) == 0:
             print("kwargs is empty, returning doc: ", doc)
-            return doc, None
+            return doc
         # if len of kwargs is not 0, then use kwargs[0] as query to find the document(e.g. {"subdomain": "sub1"})
         queryjson = Query(NthKey(kwargs, 0))
         try:
             doc = list(filter(Query(NthKey(kwargs, 0)).match, doc))[0]
         except IndexError as err:
-            return {}, None
+            return ""
         print("data after filter with {} : {}".format(NthKey(kwargs, 0), doc))
         # doc, err = QueryDocument(client, dbname, collname, NthKey(kwargs, 0))
         if err:
-            return None, err
+            return ""
         # if doc is empty then return None
         if not doc:
-            return None, Exception("No document found")
+            return ""
         # shift kwargs 1 to the left
         kwargs = ShiftLeft(kwargs, 1)
         print("kwargs after shift: ", kwargs)
     # return the doc
-    return doc, None
+    return doc
 
-# function GetInfo, gets client, dbname, collname, a json filter (as string, e.g. `{"domain": "domain1.com"}`) and parts as *args (all members of args are strings) and returns the members of the parts and error
+# function GetInfo, gets client, dbname, collname, a json filter (as string, e.g. `{"domain": "domain1.com"}`) and parts as *args (all members of args are strings) and returns the members of the parts
 def GetInfo(client, dbname, collname, filterjson=None, *args):
     # Check if collection exists
     collexists = IsCollection(client, dbname, collname)

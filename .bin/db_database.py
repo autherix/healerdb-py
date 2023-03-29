@@ -26,7 +26,7 @@ def list(
     """List all the databases"""
     result = mod_dbquery.GetDatabases(client)
 
-    if IsJson or gIsJson:
+    if (IsJson or gIsJson) and type(result) is not dict:
         # Convert the list to a dictionary
         result = { "result": result }
         # Convert the dictionary to a JSON string
@@ -42,7 +42,7 @@ def create(
     """Create a database"""
     result = mod_dbquery.CreateDatabase(client, dbname)
 
-    if IsJson or gIsJson:
+    if (IsJson or gIsJson) and type(result) is not dict:
         # Convert the list to a dictionary
         result = { "result": str(result) }
         # Convert the dictionary to a JSON string
@@ -58,7 +58,7 @@ def delete(
     """Delete a database"""
     result = mod_dbquery.DropDatabase(client, dbname)
 
-    if IsJson or gIsJson:
+    if (IsJson or gIsJson) and type(result) is not dict:
         # Convert the list to a dictionary
         result = { "result": str(result) }
         # Convert the dictionary to a JSON string
@@ -74,7 +74,7 @@ def exists(
     """Check if a database exists"""
     result = mod_dbquery.IsDatabase(client, dbname)
 
-    if IsJson or gIsJson:
+    if (IsJson or gIsJson) and type(result) is not dict:
         # Convert the list to a dictionary
         result = { "result": str(result) }
         # Convert the dictionary to a JSON string
@@ -89,7 +89,7 @@ def purge_all_databases(
     """Delete all databases"""
     result = mod_dbquery.PurgeDatabases(client)
 
-    if IsJson or gIsJson:
+    if (IsJson or gIsJson) and type(result) is not dict:
         # Convert the list to a dictionary
         result = { "result": str(result) }
         # Convert the dictionary to a JSON string

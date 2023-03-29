@@ -10,9 +10,7 @@ def initdb(client):
     rprint("Purge result: " + str(purgeResult))
 
     # Create a database called enum
-    db, err = dbquery.CreateDatabase(client, "enum")
-    if err != None:
-        print(parseError(err))
+    db = dbquery.CreateDatabase(client, "enum")
     rprint("Database created successfully")
     seperator()
 

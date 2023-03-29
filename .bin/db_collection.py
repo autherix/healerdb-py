@@ -25,7 +25,7 @@ def list(
     """List all the collections"""
     result = mod_dbquery.GetCollections(client, database)
 
-    if IsJson or gIsJson:
+    if (IsJson or gIsJson) and type(result) is not dict:
         # Convert the list to a dictionary
         result = { "result": result }
         # Convert the dictionary to a JSON string
@@ -42,7 +42,7 @@ def create(
     """Create a database"""
     result = mod_dbquery.CreateCollection(client, database, collection)
 
-    if IsJson or gIsJson:
+    if (IsJson or gIsJson) and type(result) is not dict:
         # Convert the list to a dictionary
         result = { "result": result }
         # Convert the dictionary to a JSON string
@@ -59,7 +59,7 @@ def delete(
     """Delete a database"""
     result = mod_dbquery.DropCollection(client, database, collection)
 
-    if IsJson or gIsJson:
+    if (IsJson or gIsJson) and type(result) is not dict:
         # Convert the list to a dictionary
         result = { "result": result }
         # Convert the dictionary to a JSON string
@@ -76,7 +76,7 @@ def exists(
     """Check if a collection exists"""
     result = mod_dbquery.IsCollection(client, database, collection)
 
-    if IsJson or gIsJson:
+    if (IsJson or gIsJson) and type(result) is not dict:
         # Convert the list to a dictionary
         result = { "result": result }
         # Convert the dictionary to a JSON string
@@ -92,7 +92,7 @@ def delete_all_collections(
     """Delete all collections in a database"""
     result = mod_dbquery.PurgeCollections(client, database)
 
-    if IsJson or gIsJson:
+    if (IsJson or gIsJson) and type(result) is not dict:
         # Convert the list to a dictionary
         result = { "result": result }
         # Convert the dictionary to a JSON string

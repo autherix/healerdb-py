@@ -28,7 +28,7 @@ def list(
     """List all the documents IDs"""
     result = mod_dbquery.ListDocuments(client, dbname, colname)
 
-    if IsJson or gIsJson:
+    if (IsJson or gIsJson) and type(result) is not dict:
         # Convert the list to a dictionary
         result = { "result": result }
         # Convert the dictionary to a JSON string
@@ -46,7 +46,7 @@ def create(
     """Create a document"""
     result = mod_dbquery.AddDocument(client, dbname, colname, doc)
 
-    if IsJson or gIsJson:
+    if (IsJson or gIsJson) and type(result) is not dict:
         # Convert the list to a dictionary
         result = { "result": str(result) }
         # Convert the dictionary to a JSON string
@@ -64,7 +64,7 @@ def delete(
     """Delete a document"""
     result = mod_dbquery.RemoveDocument(client, dbname, colname, docid)
 
-    if IsJson or gIsJson:
+    if (IsJson or gIsJson) and type(result) is not dict:
         # Convert the list to a dictionary
         result = { "result": str(result) }
         # Convert the dictionary to a JSON string
@@ -82,7 +82,7 @@ def exists(
     """Check if a document exists"""
     result = mod_dbquery.IsDocument(client, dbname, colname, docid)
 
-    if IsJson or gIsJson:
+    if (IsJson or gIsJson) and type(result) is not dict:
         # Convert the list to a dictionary
         result = { "result": str(result) }
         # Convert the dictionary to a JSON string
@@ -101,7 +101,7 @@ def update_one_by_id(
     """Update a document"""
     result = mod_dbquery.UpdateDocumentByID(client, dbname, colname, docid, doc)
 
-    if IsJson or gIsJson:
+    if (IsJson or gIsJson) and type(result) is not dict:
         # Convert the list to a dictionary
         result = { "result": str(result) }
         # Convert the dictionary to a JSON string
@@ -120,7 +120,7 @@ def update_one_by_query(
     """Update a document"""
     result = mod_dbquery.UpdateDocument(client, dbname, colname, query, doc)
 
-    if IsJson or gIsJson:
+    if (IsJson or gIsJson) and type(result) is not dict:
         # Convert the list to a dictionary
         result = { "result": str(result) }
         # Convert the dictionary to a JSON string
@@ -138,7 +138,7 @@ def get_one(
     """Get a document with a query(only one document - first found even if empty query)"""
     result = mod_dbquery.QueryDocument(client, dbname, colname, query)
 
-    if IsJson or gIsJson:
+    if (IsJson or gIsJson) and type(result) is not dict:
         # Convert the list to a dictionary
         result = { "result": result }
         # Convert the dictionary to a JSON string
@@ -156,7 +156,7 @@ def get_all(
     """Get documents with a query(empty query for all documents)"""
     result = mod_dbquery.QueryDocuments(client, dbname, colname, query)
 
-    if IsJson or gIsJson:
+    if (IsJson or gIsJson) and type(result) is not dict:
         # Convert the list to a dictionary
         result = { "result": result }
         # Convert the dictionary to a JSON string
@@ -175,7 +175,7 @@ def update_many_by_query(
     """Update documents with a query"""
     result = mod_dbquery.UpdateDocumentsWithQuery(client, dbname, colname, query, doc)
 
-    if IsJson or gIsJson:
+    if (IsJson or gIsJson) and type(result) is not dict:
         # Convert the list to a dictionary
         result = { "result": str(result) }
         # Convert the dictionary to a JSON string
@@ -188,6 +188,22 @@ def update_many_by_query(
 
     print(result)
 
+@app.command(no_args_is_help=True)
+def delete_all_documents(
+    dbname: str = typer.Option(..., "--database", "-db", help="The database to delete the documents from", rich_help_panel="neccessary Information"),
+    colname: str = typer.Option(..., "--collection", "-coll", help="The collection to delete the documents from", rich_help_panel="neccessary Information"),
+    IsJson: bool = typer.Option(False, "--json", "-j", help="Output in JSON format"),
+    ):
+    """Delete all documents in a collection"""
+    result = mod_dbquery.PurgeDocuments(client, dbname, colname)
+
+    if (IsJson or gIsJson) and type(result) is not dict:
+        # Convert the list to a dictionary
+        result = { "result": str(result) }
+        # Convert the dictionary to a JSON string
+        result = json.dumps(result, indent=4)
+
+    print(result)
 
 
 

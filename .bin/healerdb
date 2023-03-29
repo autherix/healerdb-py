@@ -8,7 +8,7 @@ import db_database
 import db_collection
 import db_target
 import db_document
-# import db_domain
+import db_domain
 # import db_subdomain
 # import db_urls
 # import db_directory
@@ -25,7 +25,7 @@ app.add_typer(db_collection.app, name="collection", help="Manage the collections
 app.add_typer(db_target.app, name="target", help="Manage the targets", no_args_is_help=True)
 app.add_typer(db_document.app, name="document", help="Manage the documents", no_args_is_help=True)
 
-# app.add_typer(db_domain.app, name="domain", help="Manage the domains", no_args_is_help=True)
+app.add_typer(db_domain.app, name="domain", help="Manage the domains", no_args_is_help=True)
 # app.add_typer(db_subdomain.app, name="subdomain", help="Manage the subdomains", no_args_is_help=True)
 # app.add_typer(db_urls.app, name="urls", help="Manage the urls", no_args_is_help=True)
 # app.add_typer(db_directory.app, name="directory", help="Manage the directories", no_args_is_help=True)
