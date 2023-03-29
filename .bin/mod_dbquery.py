@@ -90,7 +90,7 @@ def CreateDatabase(client, dbname):
     collist = db.list_collection_names()
     if "init" not in collist:
         db.create_collection("init")
-    return db, None
+    return db.name
 
 # Function CreateCollection to create a collection in a database and return the collection name and error
 def CreateCollection(client, dbname, collname):
@@ -246,7 +246,7 @@ def ListDomains(client, dbname, collname):
     # Check if collection exists
     collexists = IsCollection(client, dbname, collname)
     if not collexists:
-        return None, None, "Collection does not exist"
+        raise Exception("Collection does not exist")
     db = client[dbname]
     coll = db[collname]
     docs = coll.find()
@@ -254,17 +254,15 @@ def ListDomains(client, dbname, collname):
     for doc in docs:
         if doc["domain"] not in domains_list:
             domains_list.append(doc["domain"])
-    return docs, domains_list, None
+    return docs, domains_list
 
 # function IsDomain to check if a domain exists in a collection(target) in a database and return the result and error
 def IsDomain(client, dbname, collname, domain):
-    docs, domains_list, err = ListDomains(client, dbname, collname)
-    if err:
-        return None, None, err
+    docs, domains_list = ListDomains(client, dbname, collname)
     if domain in domains_list:
-        return docs, True, None
+        return docs, True
     else:
-        return docs, False, None
+        return docs, False
 
 # function AddDomain to add a domain to a collection(target) in a database and return the domain object's id on success and error
 def AddDomain(client, dbname, collname, domain):
@@ -278,10 +276,8 @@ def AddDomain(client, dbname, collname, domain):
         return None, "Domain already exists"
     # Add domain
     doc = {"domain": domain}
-    doc_id, err = AddDocument(client, dbname, collname, doc)
-    if err:
-        return None, err
-    return doc_id, None
+    doc_id = AddDocument(client, dbname, collname, doc)
+    return doc_id
 
 # function RemoveDomain to remove one domain from a collection(target) in a database and return the deleted domain object's _id and object itself on success and error
 def RemoveDomain(client, dbname, collname, domain):
@@ -309,144 +305,115 @@ def RemoveDomain(client, dbname, collname, domain):
 # function ListSubdomains to list all subdomains in a collection(target) in a database and return the list of subdomains and error
 def ListSubdomains(client, dbname, collname, domain):
     # Check if collection exists
-    collexists= IsCollection(client, dbname, collname)
+    collexists = IsCollection(client, dbname, collname)
     if not collexists:
         return None, None, "Collection does not exist"
     # Check if domain exists
-    docs, domainexists, err = IsDomain(client, dbname, collname, domain)
-    if err:
-        return None, None, err
+    docs, domainexists = IsDomain(client, dbname, collname, domain)
     if not domainexists:
-        return docs, None, "Domain does not exist"
+        raise Exception("Domain does not exist")
 
     # Get the list of subdomains (sample doc: `{"domain": "example.com", "subdomains:" [{"subdomain: "sub1.domain.com"}, {"subdomain: "sub2.domain.com"}]}`)
-    doc, err = QueryDocument(client, dbname, collname, {"domain": domain})
-    if err:
-        return None, None, err
+    doc = QueryDocument(client, dbname, collname, {"domain": domain})
     subdomains_list = []
     try:
         doc_subdomains = doc["subdomains"]
     except KeyError:
-        return docs, subdomains_list, None
+        return docs, subdomains_list
     for subdomain in doc_subdomains:
         subdomains_list.append(subdomain["subdomain"])
-    return docs, subdomains_list, None
+    return docs, subdomains_list
 
 # function IsSubdomain to check if a subdomain exists in a collection(target) in a database and return the result and error
 def IsSubdomain(client, dbname, collname, domain, subdomain):
-    docs, subdomains_list, err = ListSubdomains(client, dbname, collname, domain)
-    if err:
-        return None, None, err
+    docs, subdomains_list = ListSubdomains(client, dbname, collname, domain)
     if subdomain in subdomains_list:
-        return docs, True, None
+        return docs, True
     else:
-        return docs, False, None
+        return docs, False
 
 # function AddSubdomain to add a subdomain to a collection(target) in a database and return the subdomain object's id on success and error
-def AddSubdomain(client, dbname, collname, domain, subdomain):
+def AddSubdomain(client: MongoClient, dbname: str, collname: str, domain: str, subdomain: str):
     # Check if subdomain exists
-    docs, subdomainexists, err = IsSubdomain(client, dbname, collname, domain, subdomain)
-    if err:
-        return None, None, err
+    docs, subdomainexists = IsSubdomain(client, dbname, collname, domain, subdomain)
     if subdomainexists:
-        return None, None, "Subdomain already exists"
+        raise Exception("Subdomain already exists")
     # Get the document object
-    doc, err = QueryDocument(client, dbname, collname, {"domain": domain})
-    if err:
-        return None, None, err
+    doc = QueryDocument(client, dbname, collname, {"domain": domain})
     # Add subdomain
     try:
         _ = doc["subdomains"]
     except KeyError:
         doc["subdomains"] = []
     doc["subdomains"].append({"subdomain": subdomain})
-    doc, err = UpdateDocument(client, dbname, collname, doc["_id"], doc)
-    if err:
-        return None, None, err
-    return subdomain, doc["_id"], None
+    doc = UpdateDocumentByID(client, dbname, collname, doc["_id"], doc)
+    return subdomain, doc["_id"]
 
 # function RemoveSubdomain to remove one subdomain from a collection(target) in a database and return the deleted subdomain object's _id and object itself on success and error
-def RemoveSubdomain(client, dbname, collname, domain, subdomain):
+def RemoveSubdomain(client: MongoClient, dbname: str, collname: str, domain: str, subdomain: str):
     # Check if subdomain exists
-    docs, subdomainexists, err = IsSubdomain(client, dbname, collname, domain, subdomain)
-    if err:
-        return None, None, err
+    docs, subdomainexists = IsSubdomain(client, dbname, collname, domain, subdomain)
     if not subdomainexists:
-        return None, None, "Subdomain does not exist"
+        raise Exception("Subdomain does not exist")
     # Get the document object
-    doc, err = QueryDocument(client, dbname, collname, {"domain": domain})
-    if err:
-        return None, None, err
+    doc = QueryDocument(client, dbname, collname, {"domain": domain})
     # Remove subdomain
     for subdomain_obj in doc["subdomains"]:
         if subdomain_obj["subdomain"] == subdomain:
             doc["subdomains"].remove(subdomain_obj)
-            doc, err = UpdateDocument(client, dbname, collname, doc["_id"], doc)
-            if err:
-                return None, None, err
-            return subdomain_obj, doc["_id"], None
-    return None, None, "Subdomain does not exist"
+            doc = UpdateDocumentByID(client, dbname, collname, doc["_id"], doc)
+            return subdomain_obj, doc["_id"]
+    raise Exception("Subdomain does not exist")
 
 # Function to list all nestedsubdomains in a collection(target) in a database and return the list of nestedsubdomains and error
 def ListNestedSubdomains(client, dbname, collname, domain, subdomain):
     # Check if collection exists
     collexists = IsCollection(client, dbname, collname)
     if not collexists:
-        return None, None, "Collection does not exist"
+        raise Exception("Collection does not exist")
     # Check if domain exists
-    docs, domainexists, err = IsDomain(client, dbname, collname, domain)
-    if err:
-        return None, None, err
+    docs, domainexists = IsDomain(client, dbname, collname, domain)
     if not domainexists:
-        return docs, None, "Domain does not exist"
+        raise Exception("Domain does not exist")
     # Check if subdomain exists
-    docs, subdomainexists, err = IsSubdomain(client, dbname, collname, domain, subdomain)
-    if err:
-        return None, None, err
+    docs, subdomainexists = IsSubdomain(client, dbname, collname, domain, subdomain)
     if not subdomainexists:
-        return docs, None, "Subdomain does not exist"
+        raise Exception("Subdomain does not exist")
 
     # Get the list of nestedsubdomains (sample doc: `{"domain": "example.com", "subdomains:" [{"subdomain: "sub1.domain.com", "subdomains": [{"subdomain": "sub1.sub1.domain.com"}, {"subdomain": "sub2.sub1.domain.com"}]}, {"subdomain: "sub2.domain.com", "subdomains": [{"subdomain": "sub1.sub2.domain.com"}, {"subdomain": "sub2.sub2.domain.com"}]}]}`)
-    doc, err = QueryDocument(client, dbname, collname, {"domain": domain})
-    if err:
-        return None, None, err
-    nestedsubdomains_list = []
+    doc = QueryDocument(client, dbname, collname, {"domain": domain})
+    nestedsubdomains_list: List[str] = []
     try:
         doc_subdomains = doc["subdomains"]
     except KeyError:
-        return docs, nestedsubdomains_list, None
+        return docs, nestedsubdomains_list
     for subdomain_obj in doc["subdomains"]:
         if subdomain_obj["subdomain"] == subdomain:
             try:
                 _ = subdomain_obj["subdomains"]
             except KeyError:
-                return docs, nestedsubdomains_list, None
+                return docs, nestedsubdomains_list
             for nestedsubdomain in subdomain_obj["subdomains"]:
                 nestedsubdomains_list.append(nestedsubdomain["subdomain"])
-    return docs, nestedsubdomains_list, None
+    return docs, nestedsubdomains_list
 
 # function IsNestedSubdomain to check if a nestedsubdomain exists in a collection(target) in a database and return the result and error
 def IsNestedSubdomain(client, dbname, collname, domain, subdomain, nestedsubdomain):
-    docs, nestedsubdomains_list, err = ListNestedSubdomains(client, dbname, collname, domain, subdomain)
-    if err:
-        return None, None, err
+    docs, nestedsubdomains_list = ListNestedSubdomains(client, dbname, collname, domain, subdomain)
     if nestedsubdomain in nestedsubdomains_list:
-        return docs, True, None
+        return docs, True
     else:
-        return docs, False, None
+        return docs, False
     
 # function AddNestedSubdomain to add a nestedsubdomain to a collection(target) in a database and return the nestedsubdomain object's id on success and error
 def AddNestedSubdomain(client, dbname, collname, domain, subdomain, nestedsubdomain):
+    # type: (CosmosClient, str, str, str, str, str) -> Tuple[str, str]
     # Check if nestedsubdomain exists
-    docs, nestedsubdomainexists, err = IsNestedSubdomain(client, dbname, collname, domain, subdomain, nestedsubdomain)
-    if err:
-        return None, None, err
+    docs, nestedsubdomainexists = IsNestedSubdomain(client, dbname, collname, domain, subdomain, nestedsubdomain)
     if nestedsubdomainexists:
-        return None, None, "NestedSubdomain already exists"
+        raise Exception("Nestedsubdomain already exists")
     # Get the document object
-    doc, err = QueryDocument(client, dbname, collname, {"domain": domain})
-    if err:
-        return None, None, err
+    doc = QueryDocument(client, dbname, collname, {"domain": domain})
     # Add nestedsubdomain
     for subdomain_obj in doc["subdomains"]:
         if subdomain_obj["subdomain"] == subdomain:
@@ -455,11 +422,9 @@ def AddNestedSubdomain(client, dbname, collname, domain, subdomain, nestedsubdom
             except KeyError:
                 subdomain_obj["subdomains"] = []
             subdomain_obj["subdomains"].append({"subdomain": nestedsubdomain})
-            doc, err = UpdateDocument(client, dbname, collname, doc["_id"], doc)
-            if err:
-                return None, None, err
-            return nestedsubdomain, doc["_id"], None
-    return None, None, "Subdomain does not exist"
+            doc = UpdateDocumentByID(client, dbname, collname, doc["_id"], doc)
+            return nestedsubdomain, doc["_id"]
+    raise Exception("Subdomain does not exist")
 
 # function RemoveNestedSubdomain to remove one nestedsubdomain from a collection(target) in a database and return the deleted nestedsubdomain object's _id and object itself on success and error
 def RemoveNestedSubdomain(client, dbname, collname, domain, subdomain, nestedsubdomain):
@@ -578,20 +543,16 @@ def GetInfo(client, dbname, collname, filterjson=None, *args):
     # Convert filterjson to json
     filterjson = json.loads(filterjson)
     # Get the document object
-    doc, err = QueryDocument(client, dbname, collname, filterjson)
-    if err:
-        return None, err
+    doc = QueryDocument(client, dbname, collname, filterjson)
     # if doc is empty then return None
     if not doc:
-        return None, Exception("No document found")
+        raise Exception("No document found")
     
     # if len of args is 0, then return the document
     if len(args) == 0:
-        return doc, None
+        return doc
     
     # From now on, we have a document and we need to get the members of the parts in args, so we use GetFromJson function to get the members of the parts in args
-    doc, err = GetFromJson(doc, *args)
-    if err:
-        return None, err
-    return doc, None
+    doc = GetFromJson(doc, *args)
+    return doc
 

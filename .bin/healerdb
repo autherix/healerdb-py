@@ -24,6 +24,7 @@ app.add_typer(db_database.app, name="database", help="Manage the databases", no_
 app.add_typer(db_collection.app, name="collection", help="Manage the collections", no_args_is_help=True)
 app.add_typer(db_target.app, name="target", help="Manage the targets", no_args_is_help=True)
 app.add_typer(db_document.app, name="document", help="Manage the documents", no_args_is_help=True)
+
 # app.add_typer(db_domain.app, name="domain", help="Manage the domains", no_args_is_help=True)
 # app.add_typer(db_subdomain.app, name="subdomain", help="Manage the subdomains", no_args_is_help=True)
 # app.add_typer(db_urls.app, name="urls", help="Manage the urls", no_args_is_help=True)

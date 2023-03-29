@@ -26,63 +26,43 @@ def initdb(client):
     rprint("Domain created successfully")
 
     # list domains in the collection target1
-    docs, domainList, err = dbquery.ListDomains(client, "enum", "target1")
-    if err != None:
-        print(parseError(err))
+    docs, domainList = dbquery.ListDomains(client, "enum", "target1")
     rprint("Domains in collection target1: " + str(domainList))
 
     # List the subdomains of domain1.com in the collection target1
-    docs, subdomainList, err = dbquery.ListSubdomains(client, "enum", "target1", "domain1.com")
-    if err != None:
-        print(parseError(err))
+    docs, subdomainList = dbquery.ListSubdomains(client, "enum", "target1", "domain1.com")
     rprint("Subdomains of domain1.com in collection target1: " + str(subdomainList))
 
     # Add a new subdomain to domain1.com in the collection target1
-    subdomain1, doc_id,  err = dbquery.AddSubdomain(client, "enum", "target1", "domain1.com", "subdomain1")
-    if err != None:
-        print(parseError(err))
+    subdomain1, doc_id = dbquery.AddSubdomain(client, "enum", "target1", "domain1.com", "subdomain1")
     rprint("Subdomain created successfully: " + stylize(str(subdomain1), "blue"))
 
     # List the subdomains of domain1.com in the collection target1
-    docs, subdomainList, err = dbquery.ListSubdomains(client, "enum", "target1", "domain1.com")
-    if err != None:
-        print(parseError(err))
+    docs, subdomainList = dbquery.ListSubdomains(client, "enum", "target1", "domain1.com")
     rprint("Subdomains of domain1.com in collection target1: " + str(subdomainList))
 
     # Add a new subdomain to domain1.com in the collection target1
-    subdomain2, doc_id, err = dbquery.AddSubdomain(client, "enum", "target1", "domain1.com", "subdomain2")
-    if err != None:
-        print(parseError(err))
+    subdomain2, doc_id = dbquery.AddSubdomain(client, "enum", "target1", "domain1.com", "subdomain2")
     rprint("Subdomain created successfully: " + stylize(str(subdomain2), "blue"))
 
     # List the subdomains of domain1.com in the collection target1
-    docs, subdomainList, err = dbquery.ListSubdomains(client, "enum", "target1", "domain1.com")
-    if err != None:
-        print(parseError(err))
+    docs, subdomainList = dbquery.ListSubdomains(client, "enum", "target1", "domain1.com")
     rprint("Subdomains of domain1.com in collection target1: " + str(subdomainList))
 
     # Remove subdomain subdomain1 from domain1.com in the collection target1
-    doc, doc_id, err = dbquery.RemoveSubdomain(client, "enum", "target1", "domain1.com", "subdomain1")
-    if err != None:
-        print(parseError(err))
+    doc, doc_id = dbquery.RemoveSubdomain(client, "enum", "target1", "domain1.com", "subdomain1")
     rprint("Subdomain removed successfully: " + stylize(str(doc['subdomain']), "blue"))
 
     # List nested subdomains of subdomain2 in domain1.com in the collection target1
-    docs, subdomainList, err = dbquery.ListNestedSubdomains(client, "enum", "target1", "domain1.com", "subdomain2")
-    if err != None:
-        print(parseError(err))
+    docs, subdomainList = dbquery.ListNestedSubdomains(client, "enum", "target1", "domain1.com", "subdomain2")
     rprint("Nested subdomains of subdomain2 in domain1.com in collection target1: " + str(subdomainList))
 
     # Add a new nested subdomain to subdomain2 in domain1.com in the collection target1
-    subdomain3, doc_id, err = dbquery.AddNestedSubdomain(client, "enum", "target1", "domain1.com", "subdomain2", "subdomain3")
-    if err != None:
-        print(parseError(err))
+    subdomain3, doc_id = dbquery.AddNestedSubdomain(client, "enum", "target1", "domain1.com", "subdomain2", "subdomain3")
     rprint("Nested subdomain created successfully: " + stylize(str(subdomain3), "blue"))
 
     # Run GetInfo function 
-    docs, err = dbquery.GetInfo(client, "enum", "target1", '{"domain": "domain1.com"}', "subdomains", '{"subdomain": "subdomain2"}', 'subdomains')
-    if err != None:
-        print(parseError(err))
+    docs = dbquery.GetInfo(client, "enum", "target1", '{"domain": "domain1.com"}', "subdomains", '{"subdomain": "subdomain2"}', 'subdomains')
     rprint("ListPart result: " + str(docs))
     # if docs is a list, try to convert it to a dictionary
     seperator()
