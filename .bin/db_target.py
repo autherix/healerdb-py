@@ -11,20 +11,19 @@ app = typer.Typer(help="Manage the databases", no_args_is_help=True)
 def callback(
     OutIsJson: bool = typer.Option(False, "--json", "-j", help="Output in JSON format"),
     ):
-    """Callback function for the database command"""
+    """Callback function for the target command"""
     global client
     client = mod_dbquery.FastClient()
     global gIsJson
     gIsJson = OutIsJson
 
-
-
-@app.command(no_args_is_help=False)
+@app.command(no_args_is_help=True)
 def list(
+    database: str = typer.Option(..., "--database", "-db", help="The database to list the targets(collections) in", rich_help_panel="neccessary Information"),
     IsJson: bool = typer.Option(False, "--json", "-j", help="Output in JSON format"),
     ):
-    """List all the databases"""
-    result = mod_dbquery.GetDatabases(client)
+    """List all the targets"""
+    result = mod_dbquery.GetCollections(client, database)
 
     if IsJson or gIsJson:
         # Convert the list to a dictionary
@@ -33,18 +32,19 @@ def list(
         result = json.dumps(result, indent=4)
 
     print(result)
-    
+
 @app.command(no_args_is_help=True)
 def create(
-    dbname: str = typer.Option(..., "--database", "-db", help="The database to create", rich_help_panel="neccessary Information"),
+    target: str = typer.Option(..., "--target", "-t", help="The target handle (Must be target's handle in bb platfoem) to create", rich_help_panel="neccessary Information"),
+    database: str = typer.Option(..., "--database", "-db", help="The database to create the target in", rich_help_panel="neccessary Information"),
     IsJson: bool = typer.Option(False, "--json", "-j", help="Output in JSON format"),
     ):
     """Create a database"""
-    result = mod_dbquery.CreateDatabase(client, dbname)
+    result = mod_dbquery.CreateCollection(client, database, target)
 
     if IsJson or gIsJson:
         # Convert the list to a dictionary
-        result = { "result": str(result) }
+        result = { "result": result }
         # Convert the dictionary to a JSON string
         result = json.dumps(result, indent=4)
 
@@ -52,15 +52,16 @@ def create(
 
 @app.command(no_args_is_help=True)
 def delete(
-    dbname: str = typer.Option(..., "--database", "-db", help="The database to delete", rich_help_panel="neccessary Information"),
+    target: str = typer.Option(..., "--target", "-t", help="The target handle (Must be target's handle in bb platfoem) to delete", rich_help_panel="neccessary Information"),
+    database: str = typer.Option(..., "--database", "-db", help="The database to delete the target in", rich_help_panel="neccessary Information"),
     IsJson: bool = typer.Option(False, "--json", "-j", help="Output in JSON format"),
     ):
     """Delete a database"""
-    result = mod_dbquery.DropDatabase(client, dbname)
+    result = mod_dbquery.DropCollection(client, database, target)
 
     if IsJson or gIsJson:
         # Convert the list to a dictionary
-        result = { "result": str(result) }
+        result = { "result": result }
         # Convert the dictionary to a JSON string
         result = json.dumps(result, indent=4)
 
@@ -68,34 +69,39 @@ def delete(
 
 @app.command(no_args_is_help=True)
 def exists(
-    dbname: str = typer.Option(..., "--database", "-db", help="The database to check if it exists", rich_help_panel="neccessary Information"),
+    target: str = typer.Option(..., "--target", "-t", help="The target handle (Must be target's handle in bb platfoem) to check", rich_help_panel="neccessary Information"),
+    database: str = typer.Option(..., "--database", "-db", help="The database to check the target in", rich_help_panel="neccessary Information"),
     IsJson: bool = typer.Option(False, "--json", "-j", help="Output in JSON format"),
     ):
-    """Check if a database exists"""
-    result = mod_dbquery.IsDatabase(client, dbname)
+    """Check if a target exists"""
+    result = mod_dbquery.IsCollection(client, database, target)
 
     if IsJson or gIsJson:
         # Convert the list to a dictionary
-        result = { "result": str(result) }
+        result = { "result": result }
         # Convert the dictionary to a JSON string
         result = json.dumps(result, indent=4)
 
     print(result)
 
 @app.command(no_args_is_help=True)
-def purge_all_databases(
+def delete_all_targets(
+    database: str = typer.Option(..., "--database", "-db", help="The database to delete all the targets in", rich_help_panel="neccessary Information"),
     IsJson: bool = typer.Option(False, "--json", "-j", help="Output in JSON format"),
     ):
-    """Delete all databases"""
-    result = mod_dbquery.PurgeDatabases(client)
+    """Delete all the targets(collections) in a database"""
+    result = mod_dbquery.DropAllCollections(client, database)
 
     if IsJson or gIsJson:
         # Convert the list to a dictionary
-        result = { "result": str(result) }
+        result = { "result": result }
         # Convert the dictionary to a JSON string
         result = json.dumps(result, indent=4)
 
     print(result)
+
+
+
 
 if __name__ == '__main__':
     app()

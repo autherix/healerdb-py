@@ -4,6 +4,8 @@ from rich import print
 from mod_utils import *
 import mod_config
 from mongoquery import Query, QueryError
+from bson.objectid import ObjectId
+from pymongo.collection import ReturnDocument
 
 # function CreateClient to create a client on mongodb server using the provided connection string, return client and error
 def CreateClient(connstr):
@@ -62,13 +64,13 @@ def IsCollection(client, db, coll):
     # Check if database exists
     dblist = client.list_database_names()
     if db not in dblist:
-        return False, None
+        return False
     # Check if collection exists
     collist = client[db].list_collection_names()
     if coll in collist:
-        return True, None
+        return True
     else:
-        return False, None
+        return False
 
 # Function PurgeDatabases to delete all databases except admin, config and local and return the list of deleted databases name and error
 def PurgeDatabases(client):
@@ -113,27 +115,35 @@ def DropCollection(client, dbname, collname):
 def PurgeCollections(client, dbname):
     deleted_colls = []
     db = client[dbname]
-    collist, err = GetCollections(client, dbname)
+    collist = GetCollections(client, dbname)
     collist.remove("init")
     for coll in collist:
         db.drop_collection(coll)
         deleted_colls.append(coll)
-    return dbname, deleted_colls, None
+    return deleted_colls
 
 # function AddDocument to add a document to a collection in a database and return the document object's id on success and error
 def AddDocument(client, dbname, collname, doc):
     db = client[dbname]
     coll = db[collname]
+    # If doc is string, convert it to json
+    if isinstance(doc, str):
+        try:
+            doc = json.loads(doc)
+        except:
+            raise Exception("Invalid JSON")
     doc_id = coll.insert_one(doc).inserted_id
-    return doc_id, None
+    return doc_id
 
 # function RemoveDocument to remove one document from a collection in a database and return the deleted document object's _id and object itself on success and error
 def RemoveDocument(client, dbname, collname, doc_id):
     db = client[dbname]
     coll = db[collname]
-    doc = coll.find_one_and_delete({"_id": doc_id})
+    doc = coll.find_one_and_delete({"_id": ObjectId(doc_id)})
+    if doc is None:
+        return []
     removed_doc_id = doc["_id"]
-    return doc, removed_doc_id, None
+    return doc
 
 # function ListDocuments to list all documents in a collection in a database and return the list of documents id and error
 def ListDocuments(client, dbname, collname):
@@ -143,48 +153,98 @@ def ListDocuments(client, dbname, collname):
     docs_ids_list = []
     for doc in docs:
         docs_ids_list.append(doc["_id"])
-    return docs_ids_list, None
+    return docs_ids_list
 
 # function IsDocument to check if a document exists in a collection in a database and return the result and error
 def IsDocument(client, dbname, collname, doc_id):
     docs_ids_list = ListDocuments(client, dbname, collname)
-    if doc_id in docs_ids_list:
-        return True, None
-    else:
-        return False, None
+    for doc in docs_ids_list:
+        if str(doc) == str(doc_id):
+            return True
+    return False
 
 # function QueryDocuments to query documents in a collection in a database and return the list of documents id and error
 def QueryDocuments(client, dbname, collname, query):
     db = client[dbname]
     coll = db[collname]
+    # If query is string, convert it to json
+    if isinstance(query, str):
+        try:
+            query = json.loads(query)
+        except:
+            raise Exception("Invalid query - Cannot convert to JSON")
     docs = coll.find(query)
     docs_ids_list = []
     for doc in docs:
         docs_ids_list.append(doc["_id"])
-    return docs_ids_list, None
+    return docs_ids_list
 
 # function QueryDocumment to query one document in a collection in a database and return the document object and error
 def QueryDocument(client, dbname, collname, query):
     db = client[dbname]
     coll = db[collname]
+    # If query is string, convert it to json
+    if isinstance(query, str):
+        try:
+            query = json.loads(query)
+        except:
+            raise Exception("Invalid query - Cannot convert to JSON")
     doc = coll.find_one(query)
-    return doc, None
+    return doc
 
 # function UpdateDocument to update one document in a collection in a database and return the updated document object and error
-def UpdateDocument(client, dbname, collname, doc_id, new_doc):
+def UpdateDocumentWithQuery(client, dbname, collname, query, new_doc):
     db = client[dbname]
     coll = db[collname]
-    doc = coll.find_one_and_update({"_id": doc_id}, {"$set": new_doc})
-    # Find the updated document
-    doc = coll.find_one({"_id": doc_id})
-    return doc, None
+    # If query is string, convert it to json
+    if isinstance(query, str):
+        try:
+            query = json.loads(query)
+        except:
+            raise Exception("Invalid query - Cannot convert to JSON")
+    # If new_doc is string, convert it to json
+    if isinstance(new_doc, str):
+        try:
+            new_doc = json.loads(new_doc)
+        except:
+            raise Exception("Invalid new_doc - Cannot convert to JSON")
+    doc = coll.find_one_and_update(query, {"$set": new_doc}, return_document=ReturnDocument.AFTER)
+    return doc
+
+# function UpdateDocument to update one document in a collection in a database and return the updated document object and error
+def UpdateDocumentByID(client, dbname, collname, doc_id, new_doc):
+    # Use UpdateDocumentWithQuery to update the document
+    query = {"_id": ObjectId(doc_id)}
+    doc = UpdateDocumentWithQuery(client, dbname, collname, query, new_doc)
+    return doc
+
+# function UpdateDocumentsWithQuery to update documents in a collection in a database and return the updated documents objects and error
+def UpdateDocumentsWithQuery(client, dbname, collname, query, new_doc):
+    db = client[dbname]
+    coll = db[collname]
+    # If query is string, convert it to json
+    if isinstance(query, str):
+        try:
+            query = json.loads(query)
+        except:
+            raise Exception("Invalid query - Cannot convert to JSON")
+    # If new_doc is string, convert it to json
+    if isinstance(new_doc, str):
+        try:
+            new_doc = json.loads(new_doc)
+        except:
+            raise Exception("Invalid new_doc - Cannot convert to JSON")
+    docs = coll.find(query)
+    updated_docs = []
+    for doc in docs:
+        updated_doc = coll.find_one_and_update({"_id": doc["_id"]}, {"$set": new_doc}, return_document=ReturnDocument.AFTER)
+        updated_docs.append(updated_doc)
+    return updated_docs
 
 # function ListDomains to list all domains in a collection(target) in a database and return the list of domains and error
 def ListDomains(client, dbname, collname):
     # Check if collection exists
-    collexists, err = IsCollection(client, dbname, collname)
-    if err:
-        return None, None, err
+    collexists = IsCollection(client, dbname, collname)
     if not collexists:
         return None, None, "Collection does not exist"
     db = client[dbname]
@@ -209,15 +269,11 @@ def IsDomain(client, dbname, collname, domain):
 # function AddDomain to add a domain to a collection(target) in a database and return the domain object's id on success and error
 def AddDomain(client, dbname, collname, domain):
     # Check if collection exists
-    collexists, err = IsCollection(client, dbname, collname)
-    if err:
-        return None, err
+    collexists = IsCollection(client, dbname, collname)
     if not collexists:
         return None, "Collection does not exist"
     # Check if domain exists
-    docs, domainexists, err = IsDomain(client, dbname, collname, domain)
-    if err:
-        return None, err
+    docs, domainexists = IsDomain(client, dbname, collname, domain)
     if domainexists:
         return None, "Domain already exists"
     # Add domain
@@ -253,9 +309,7 @@ def RemoveDomain(client, dbname, collname, domain):
 # function ListSubdomains to list all subdomains in a collection(target) in a database and return the list of subdomains and error
 def ListSubdomains(client, dbname, collname, domain):
     # Check if collection exists
-    collexists, err = IsCollection(client, dbname, collname)
-    if err:
-        return None, None, err
+    collexists= IsCollection(client, dbname, collname)
     if not collexists:
         return None, None, "Collection does not exist"
     # Check if domain exists
@@ -336,9 +390,7 @@ def RemoveSubdomain(client, dbname, collname, domain, subdomain):
 # Function to list all nestedsubdomains in a collection(target) in a database and return the list of nestedsubdomains and error
 def ListNestedSubdomains(client, dbname, collname, domain, subdomain):
     # Check if collection exists
-    collexists, err = IsCollection(client, dbname, collname)
-    if err:
-        return None, None, err
+    collexists = IsCollection(client, dbname, collname)
     if not collexists:
         return None, None, "Collection does not exist"
     # Check if domain exists
@@ -512,9 +564,7 @@ def ListPart(client, dbname, collname, *args, **kwargs):
 # function GetInfo, gets client, dbname, collname, a json filter (as string, e.g. `{"domain": "domain1.com"}`) and parts as *args (all members of args are strings) and returns the members of the parts and error
 def GetInfo(client, dbname, collname, filterjson=None, *args):
     # Check if collection exists
-    collexists, err = IsCollection(client, dbname, collname)
-    if err:
-        return None, err
+    collexists = IsCollection(client, dbname, collname)
     if not collexists:
         return None, Exception("Collection does not exist")
 

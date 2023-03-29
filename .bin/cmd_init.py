@@ -17,16 +17,12 @@ def initdb(client):
     seperator()
 
     # Create a collection called target1
-    collection, err = dbquery.CreateCollection(client, "enum", "target1")
-    if err != None:
-        print(parseError(err))
+    collection = dbquery.CreateCollection(client, "enum", "target1")
     rprint("Collection created successfully")
     seperator()
 
     # Create a domain object called domain1.com
-    domain1, err = dbquery.AddDomain(client, "enum", "target1", "domain1.com")
-    if err != None:
-        print(parseError(err))
+    domain1 = dbquery.AddDomain(client, "enum", "target1", "domain1.com")
     rprint("Domain created successfully")
 
     # list domains in the collection target1
