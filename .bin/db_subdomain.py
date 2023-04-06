@@ -1,7 +1,7 @@
 import typer, rich, json
 import mod_dbquery
 import rich
-from rich import print
+# from rich import print
 from rich.console import Console
 
 # console = Console()
@@ -41,10 +41,12 @@ def create(
     target: str = typer.Option(..., "--target", "-t", help="The target to create the subdomain in", rich_help_panel="neccessary Information"),
     domain: str = typer.Option(..., "--domain", "-d", help="The domain to create the subdomain in", rich_help_panel="neccessary Information"),
     subdomain: str = typer.Option(..., "--subdomain", "-sub", help="The subdomain to create", rich_help_panel="neccessary Information"),
+    live: bool = typer.Option(False, "--live", "-l", help="Is the subdomain live?"),
     IsJson: bool = typer.Option(False, "--json", "-j", help="Output in JSON format"),
     ):
     """Create a subdomain"""
     result = mod_dbquery.AddSubdomain(client, database, target, domain, subdomain)
+    # result = mod_dbquery.AddSubdomain(client, database, target, domain, subdomain, live)
 
     if (IsJson or gIsJson) and type(result) is not dict:
         # Convert the list to a dictionary
@@ -96,6 +98,24 @@ def exists(
 
     print(result)
 
+@app.command(no_args_is_help=True)
+def multi_create(
+    database: str = typer.Option(..., "--database", "-db", help="The database to create the subdomains in", rich_help_panel="neccessary Information"),
+    target: str = typer.Option(..., "--target", "-t", help="The target to create the subdomains in", rich_help_panel="neccessary Information"),
+    domain: str = typer.Option(..., "--domain", "-d", help="The domain to create the subdomains in", rich_help_panel="neccessary Information"),
+    subdomains: str = typer.Option(..., "--subdomains", "-sub", help="The subdomains to create", rich_help_panel="neccessary Information"),
+    IsJson: bool = typer.Option(False, "--json", "-j", help="Output in JSON format"),
+    ):
+    """Create multiple subdomains"""
+    result = mod_dbquery.AddSubdomains(client, database, target, domain, subdomains)
+
+    if (IsJson or gIsJson) and type(result) is not dict:
+        # Convert the list to a dictionary
+        result = { "result": str(result) }
+        # Convert the dictionary to a JSON string
+        result = json.dumps(result, indent=4)
+
+    print(result)
 
 
 

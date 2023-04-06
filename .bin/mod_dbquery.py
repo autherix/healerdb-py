@@ -1,6 +1,6 @@
-import inspect
+import inspect, re
 from pymongo import MongoClient
-from rich import print
+# from rich import print
 from mod_utils import *
 import mod_config
 from mongoquery import Query, QueryError
@@ -396,12 +396,12 @@ def IsSubdomain(client, dbname, collname, domain, subdomain):
         return doc, False
 
 # function AddSubdomain to add a subdomain to a collection(target) in a database and return the subdomain object's id on success
-def AddSubdomain(client: MongoClient, dbname: str, collname: str, domain: str, subdomain: str):
+def AddSubdomain(client: MongoClient, dbname: str, collname: str, domain: str, subdomain: str, live: bool = False):
     # Check if subdomain exists
     doc, subdomainexists = IsSubdomain(client, dbname, collname, domain, subdomain)
-    # Verified -> this doc is a real documnet
+    # Verified -> this doc is a real whole documnet
     if subdomainexists:
-        return doc["_id"]
+        return subdomain
     # Check if collection exists
     collexists = IsCollection(client, dbname, collname)
     if not collexists:
@@ -419,8 +419,48 @@ def AddSubdomain(client: MongoClient, dbname: str, collname: str, domain: str, s
     except KeyError:
         doc["subdomains"] = []
     doc["subdomains"].append({"subdomain": subdomain})
+    # doc["subdomains"].append({"subdomain": subdomain, "live": live})
     doc = UpdateDocumentByID(client, dbname, collname, doc["_id"], doc)
-    return doc["_id"]
+    return subdomain
+
+# function AddSubdomains to add a list of subdomains to a collection(target) in a database and return the list of subdomain objects' id on success
+def AddSubdomains(client: MongoClient, dbname: str, collname: str, domain: str, subdomains: str):
+    # Split subdomains string into a list of subdomains, use space as delimiter(ant space character, one space, two spaces, tab, etc.)
+    subdomains = re.split(r'\s+', subdomains)
+    # Create an empty list to store added subdomains
+    
+    # Check if collection exists
+    collexists = IsCollection(client, dbname, collname)
+    if not collexists:
+        # Create collection
+        CreateCollection(client, dbname, collname)
+    # Check if domain exists
+    docs, domainexists = IsDomain(client, dbname, collname, domain)
+    if not domainexists:
+        # Add domain
+        doc_id = AddDomain(client, dbname, collname, domain)
+        doc = GetDomain(client, dbname, collname, domain)
+
+    added_subdomains = []
+    # Add subdomains
+    for subdomain in subdomains:
+        # Check if subdomain exists
+        doc, subdomainexists = IsSubdomain(client, dbname, collname, domain, subdomain)
+        # Verified -> this doc is a real whole documnet
+        if subdomainexists:
+            updated_doc = None
+        else:
+            # Add subdomain
+            try:
+                doc_subdomains = doc["subdomains"]
+            except KeyError:
+                doc["subdomains"] = []
+            doc["subdomains"].append({"subdomain": subdomain})
+            # doc["subdomains"].append({"subdomain": subdomain, "live": live})
+            updated_doc = UpdateDocumentByID(client, dbname, collname, doc["_id"], doc)
+            # If doc is not empty, add it to the list
+            added_subdomains.append(subdomain)
+    return added_subdomains
 
 # function RemoveSubdomain to remove one subdomain from a collection(target) in a database and return the deleted subdomain object's _id and object itself on success
 def RemoveSubdomain(client: MongoClient, dbname: str, collname: str, domain: str, subdomain: str):
@@ -526,6 +566,412 @@ def RemoveNestedSubdomain(client, dbname, collname, domain, subdomain, nestedsub
                         return None, None, err
                     return nestedsubdomain_obj, doc["_id"], None
     return None, None, "NestedSubdomain does not exist"
+
+# function ListUrls to list all urls in a domain in a collection(target) in a database and return the list of urls
+def ListUrls(client, dbname, collname, domain):
+    # Check if collection exists
+    collexists = IsCollection(client, dbname, collname)
+    if not collexists:
+        return "", []
+    # Check if domain exists
+    docs, domainexists = IsDomain(client, dbname, collname, domain)
+    if not domainexists:
+        return "", []
+
+    # Get the list of urls - sample doc:
+    # {
+    #     "domain": "example.com",
+    #     "subdomains": [
+    #     ]
+    #     "urls": [
+    #         {
+    #             "url": "https://example.com"
+    #         },
+    #         {
+    #             "url": "https://example.com/about"
+    #         }
+    #     ]
+    # }
+    doc = QueryDocument(client, dbname, collname, {"domain": domain})
+    urls_list: List[str] = []
+    try:
+        doc_urls = doc["urls"]
+    except KeyError:
+        return docs, urls_list
+    for url_obj in doc["urls"]:
+        urls_list.append(url_obj["url"])
+    return docs, urls_list
+
+# function IsUrl to check if a url exists in a collection(target) in a database and return the result
+def IsUrl(client, dbname, collname, domain, url):
+    docs, urls_list = ListUrls(client, dbname, collname, domain)
+    if url in urls_list:
+        return docs, True
+    else:
+        return docs, False
+
+# function AddUrl to add a url to a collection(target) in a database and return the url object's id on success
+def AddUrls(client, dbname, collname, domain, urls):
+    # Split urls by " "
+    urls_list = re.split(r"\s+", urls)
+
+    # Check if collection exists
+    collexists = IsCollection(client, dbname, collname)
+    if not collexists:
+        # Create collection
+        CreateCollection(client, dbname, collname)
+    # Check if domain exists
+    docs, domainexists = IsDomain(client, dbname, collname, domain)
+    if not domainexists:
+        # Add domain
+        doc_id = AddDomain(client, dbname, collname, domain)
+        doc = GetDomain(client, dbname, collname, domain)
+
+    # set the doc using GetDomain
+    doc = GetDomain(client, dbname, collname, domain)
+
+    added_urls = []
+    for url in urls_list:
+        # Check if url exists
+        docs, urlexists = IsUrl(client, dbname, collname, domain, url)
+        if urlexists:
+            updated_doc = None
+
+        else:
+            # Add url
+            try:
+                doc_urls = doc["urls"]
+            except KeyError:
+                doc["urls"] = []
+            doc["urls"].append({"url": url})
+            updated_doc = UpdateDocumentByID(client, dbname, collname, doc["_id"], doc)
+            # If doc is not empty, add it to the list
+            added_urls.append(url)
+    
+    return added_urls
+
+# function RemoveUrl to remove a url from a collection(target) in a database and return the deleted url object's _id and object itself on success
+def RemoveUrl(client, dbname, collname, domain, url):
+    # Check if url exists
+    docs, urlexists = IsUrl(client, dbname, collname, domain, url)
+    if not urlexists:
+        return "", ""
+    # Get the document object
+    doc = QueryDocument(client, dbname, collname, {"domain": domain})
+    # Remove url
+    for url_obj in doc["urls"]:
+        if url_obj["url"] == url:
+            doc["urls"].remove(url_obj)
+            doc = UpdateDocumentByID(client, dbname, collname, doc["_id"], doc)
+            return url_obj, doc["_id"]
+    return "", ""
+
+# function ListDirectories to list all directories in a subdomain in a domain in a collection(target) in a database and return the list of directories
+def ListDirectories(client, dbname, collname, domain, subdomain):
+    # Check if collection exists
+    collexists = IsCollection(client, dbname, collname)
+    if not collexists:
+        return "", []
+    # Check if domain exists
+    docs, domainexists = IsDomain(client, dbname, collname, domain)
+    if not domainexists:
+        return "", []
+    # Check if subdomain exists
+    docs, subdomainexists = IsSubdomain(client, dbname, collname, domain, subdomain)
+    if not subdomainexists:
+        return "", []
+
+    # Get the list of directories - sample doc:
+    # {
+    #     "domain": "example.com",
+    #     "subdomains": [
+    #         {
+    #             "subdomain": "www",
+    #             "directories": [
+    #                 {
+    #                     "directory": "/about"
+    #                 },
+    #                 {
+    #                     "directory": "/contact"
+    #                 }
+    #             ]
+    #         }
+    #     ]
+    # }
+    doc = QueryDocument(client, dbname, collname, {"domain": domain})
+    directories_list: List[str] = []
+    for subdomain_obj in doc["subdomains"]:
+        if subdomain_obj["subdomain"] == subdomain:
+            try:
+                doc_directories = subdomain_obj["directories"]
+            except KeyError:
+                return docs, directories_list
+            for directory_obj in subdomain_obj["directories"]:
+                directories_list.append(directory_obj["directory"])
+            return docs, directories_list
+    return docs, directories_list
+
+# function IsDirectory to check if a directory exists in a collection(target) in a database and return the result
+def IsDirectory(client, dbname, collname, domain, subdomain, directory):
+    docs, directories_list = ListDirectories(client, dbname, collname, domain, subdomain)
+    if directory in directories_list:
+        return docs, True
+    else:
+        return docs, False
+
+# function AddDirectories to add mulitple directories to a collection(target) in a database and return the directory object's id on success
+def AddDirectories(client, dbname, collname, domain, subdomain, directories):
+    # Split directories by " "
+    directories_list = re.split(r"\s+", directories)
+
+    # Check if collection exists
+    collexists = IsCollection(client, dbname, collname)
+    if not collexists:
+        # Create collection
+        CreateCollection(client, dbname, collname)
+    # Check if domain exists
+    docs, domainexists = IsDomain(client, dbname, collname, domain)
+    if not domainexists:
+        # Add domain
+        doc_id = AddDomain(client, dbname, collname, domain)
+        doc = GetDomain(client, dbname, collname, domain)
+    # Check if subdomain exists
+    docs, subdomainexists = IsSubdomain(client, dbname, collname, domain, subdomain)
+    if not subdomainexists:
+        # Add subdomain
+        doc_id = AddSubdomain(client, dbname, collname, domain, subdomain)
+        doc = GetDomain(client, dbname, collname, domain)
+
+    # set the doc using GetSubdomain
+    doc = GetDomain(client, dbname, collname, domain)
+
+    # Directories should be added to the subdomain data be like:
+    # {
+    #     "domain": "example.com",
+    #     "subdomains": [
+    #         {
+    #             "subdomain": "www",
+    #             "directories": [
+    #                 {
+    #                     "directory": "/about"
+    #                 },
+    #                 {
+    #                     "directory": "/contact"
+    #                 }
+    #             ]
+    #         }
+    #     ]
+    # }
+    # So directory should be added to where subdomain is equal to subdomain
+    added_directories = []
+    for subdomain_obj in doc["subdomains"]:
+        if subdomain_obj["subdomain"] == subdomain:
+            try:
+                doc_directories = subdomain_obj["directories"]
+            except KeyError:
+                subdomain_obj["directories"] = []
+            for directory in directories_list:
+                if not IsDirectory(client, dbname, collname, domain, subdomain, directory)[1]:
+                    subdomain_obj["directories"].append({"directory": directory})
+                    added_directories.append(directory)
+            doc = UpdateDocumentByID(client, dbname, collname, doc["_id"], doc)
+            return added_directories
+
+# function RemoveDirectory to remove a directory from a collection(target) in a database and return the deleted directory object's _id and object itself on success
+def RemoveDirectory(client, dbname, collname, domain, subdomain, directory):
+    # Check if directory exists
+    docs, directoryexists = IsDirectory(client, dbname, collname, domain, subdomain, directory)
+    if not directoryexists:
+        return "", ""
+    # Get the document object
+    doc = QueryDocument(client, dbname, collname, {"domain": domain})
+    # Remove directory
+    for directory_obj in doc["directories"]:
+        if directory_obj["directory"] == directory:
+            doc["directories"].remove(directory_obj)
+            doc = UpdateDocumentByID(client, dbname, collname, doc["_id"], doc)
+            return directory_obj, doc["_id"]
+    return "", ""
+
+# function ListFiles to list all files in a directory in a subdomain in a domain in a collection(target) in a database and return the list of files
+def ListFiles(client, dbname, collname, domain, subdomain, directory):
+    # Check if collection exists
+    collexists = IsCollection(client, dbname, collname)
+    if not collexists:
+        return "", []
+    # Check if domain exists
+    _, domainexists = IsDomain(client, dbname, collname, domain)
+    if not domainexists:
+        return "", []
+    # Check if subdomain exists
+    _, subdomainexists = IsSubdomain(client, dbname, collname, domain, subdomain)
+    if not subdomainexists:
+        return "", []
+    # Check if directory exists
+    _, directoryexists = IsDirectory(client, dbname, collname, domain, subdomain, directory)
+    if not directoryexists:
+        return "", []
+    # Get the list of files - sample doc:
+    # {
+    #     "domain": "example.com",
+    #     "subdomains": [
+    #         {
+    #             "subdomain": "www",
+    #             "directories": [
+    #                 {
+    #                     "directory": "/about",
+    #                     "files": [
+    #                         {
+    #                             "file": "index.html"
+    #                         }
+    #                     ]
+    #                 }
+    #             ]
+    #         }
+    #     ]
+    # }
+    doc = QueryDocument(client, dbname, collname, {"domain": domain})
+    files_list: List[str] = []
+    try:
+        subdomains = doc["subdomains"]
+    except KeyError:
+        return "", []
+    for subdomain_obj in subdomains:
+        if subdomain_obj["subdomain"] == subdomain:
+            try: 
+                directories = subdomain_obj["directories"]
+            except KeyError:
+                return "", []
+            for directory_obj in directories:
+                if directory_obj["directory"] == directory:
+                    try:
+                        files = directory_obj["files"]
+                    except KeyError:
+                        return "", []
+                    for file_obj in files:
+                        if file_obj["file"] not in files_list:
+                            files_list.append(file_obj["file"])
+    return doc, files_list
+
+# function IsFile to check if a file exists in a directory in a subdomain in a domain in a collection(target) in a database and return the result
+def IsFile(client, dbname, collname, domain, subdomain, directory, file):
+    docs, files_list = ListFiles(client, dbname, collname, domain, subdomain, directory)
+    if file in files_list:
+        return docs, True
+    else:
+        return docs, False
+
+# function AddFiles to add files to a directory in a subdomain in a domain in a collection(target) in a database and return the list of added files
+def AddFiles(client, dbname, collname, domain, subdomain, directory, files):
+    # Split files by " "
+    files_list = re.split(r"\s+", files)
+
+    # Check if collection exists
+    collexists = IsCollection(client, dbname, collname)
+    if not collexists:
+        # Create collection
+        CreateCollection(client, dbname, collname)
+    # Check if domain exists
+    _, domainexists = IsDomain(client, dbname, collname, domain)
+    if not domainexists:
+        # Add domain
+        _ = AddDomain(client, dbname, collname, domain)
+    # Check if subdomain exists
+    _, subdomainexists = IsSubdomain(client, dbname, collname, domain, subdomain)
+    if not subdomainexists:
+        # Add subdomain
+        _ = AddSubdomain(client, dbname, collname, domain, subdomain)
+    # Check if directory exists
+    _, directoryexists = IsDirectory(client, dbname, collname, domain, subdomain, directory)
+    if not directoryexists:
+        # Add directory
+        _ = AddDirectories(client, dbname, collname, domain, subdomain, directory)
+
+    # Set the document object
+    doc = GetDomain(client, dbname, collname, domain)
+    added_files = []
+
+    # Files should be added inside a subdomain and inside a directory + handle duplicates + handle KeyErrors when subdomain["directories"] or directory["files"] doesn't exist
+    subdomains = doc["subdomains"]
+    for subdomain_obj in subdomains:
+        if subdomain_obj["subdomain"] == subdomain:
+            directories = subdomain_obj["directories"]
+            # Directories Set
+            for directory_obj in directories:
+                if directory_obj["directory"] == directory:
+                    try:
+                        files = directory_obj["files"]
+                    except KeyError:
+                        directory_obj["files"] = []
+                        doc = UpdateDocumentByID(client, dbname, collname, doc["_id"], doc)
+    for file in files_list:
+        subdomains = doc["subdomains"]
+        if not IsFile(client, dbname, collname, domain, subdomain, directory, file)[1]:
+            for subdomain_obj in subdomains:
+                if subdomain_obj["subdomain"] == subdomain:
+                    directories = subdomain_obj["directories"]
+                    # Directories Set
+                    for directory_obj in directories:
+                        if directory_obj["directory"] == directory:
+                            files = directory_obj["files"]
+                            directory_obj["files"].append({"file": file})
+                            added_files.append(file)
+                            doc = UpdateDocumentByID(client, dbname, collname, doc["_id"], doc)
+    return added_files
+
+# function RemoveFile to remove a file from a directory in a subdomain in a domain in a collection(target) in a database and return the file removed
+def RemoveFile(client, dbname, collname, domain, subdomain, directory, file):
+    # Check if collection exists
+    collexists = IsCollection(client, dbname, collname)
+    if not collexists:
+        return "", []
+    # Check if domain exists
+    _, domainexists = IsDomain(client, dbname, collname, domain)
+    if not domainexists:
+        return "", []
+    # Check if subdomain exists
+    _, subdomainexists = IsSubdomain(client, dbname, collname, domain, subdomain)
+    if not subdomainexists:
+        return "", []
+    # Check if directory exists
+    _, directoryexists = IsDirectory(client, dbname, collname, domain, subdomain, directory)
+    if not directoryexists:
+        return "", []
+    # Check if file exists
+    _, fileexists = IsFile(client, dbname, collname, domain, subdomain, directory, file)
+    if not fileexists:
+        return "", []
+
+    # Get the list of files - sample doc:
+    # {
+    #     "domain": "example.com",
+    #     "subdomains": [
+    #         {
+    #             "subdomain": "www",
+    #             "directories": [
+    #                 {
+    #                     "directory": "/about",
+    #                     "files": [
+    #                         {
+    #                             "file": "index.html"
+    #                         }
+    #                     ]
+    #                 }
+    #             ]
+    #         }
+    #     ]
+    # }
+    doc = QueryDocument(client, dbname, collname, {"domain": domain})
+    for subdomain_obj in doc["subdomains"]:
+        if subdomain_obj["subdomain"] == subdomain:
+            for directory_obj in subdomain_obj["directories"]:
+                if directory_obj["directory"] == directory:
+                    for file_obj in directory_obj["files"]:
+                        if file_obj["file"] == file:
+                            directory_obj["files"].remove(file_obj)
+                            doc = UpdateDocumentByID(client, dbname, collname, doc["_id"], doc)
+                            return file_obj, doc["_id"]
+    return "", ""
 
 # function ListPart, gets client, dbname, collname and parts as *args and returns the members of the parts
 def ListPart(client, dbname, collname, *args, **kwargs):

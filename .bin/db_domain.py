@@ -1,7 +1,7 @@
 import typer, rich, json
 import mod_dbquery
 import rich
-from rich import print
+# from rich import print
 from rich.console import Console
 
 # console = Console()
