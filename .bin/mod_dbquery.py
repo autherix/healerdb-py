@@ -667,7 +667,7 @@ def RemoveUrl(client, dbname, collname, domain, url):
     return "", ""
 
 # function ListDirectories to list all directories in a subdomain in a domain in a collection(target) in a database and return the list of directories
-def ListDirectories(client, dbname, collname, domain, subdomain):
+def ListDirectories(client, dbname, collname, domain, subdomain, dir_or_param):
     # Check if collection exists
     collexists = IsCollection(client, dbname, collname)
     if not collexists:
@@ -702,25 +702,33 @@ def ListDirectories(client, dbname, collname, domain, subdomain):
     directories_list: List[str] = []
     for subdomain_obj in doc["subdomains"]:
         if subdomain_obj["subdomain"] == subdomain:
-            try:
-                doc_directories = subdomain_obj["directories"]
-            except KeyError:
+            if dir_or_param == "directory":
+                try:
+                    doc_directories = subdomain_obj["directories"]
+                except KeyError:
+                    return docs, directories_list
+                for directory_obj in subdomain_obj["directories"]:
+                    directories_list.append(directory_obj["directory"])
                 return docs, directories_list
-            for directory_obj in subdomain_obj["directories"]:
-                directories_list.append(directory_obj["directory"])
-            return docs, directories_list
+            elif dir_or_param == "parameter":
+                try:
+                    doc_directories = subdomain_obj["parameters"]
+                except KeyError:
+                    return docs, directories_list
+                for directory_obj in subdomain_obj["parameters"]:
+                    directories_list.append(directory_obj["parameter"])
     return docs, directories_list
 
 # function IsDirectory to check if a directory exists in a collection(target) in a database and return the result
-def IsDirectory(client, dbname, collname, domain, subdomain, directory):
-    docs, directories_list = ListDirectories(client, dbname, collname, domain, subdomain)
+def IsDirectory(client, dbname, collname, domain, subdomain, directory, dir_or_param):
+    docs, directories_list = ListDirectories(client, dbname, collname, domain, subdomain, dir_or_param)
     if directory in directories_list:
         return docs, True
     else:
         return docs, False
 
 # function AddDirectories to add mulitple directories to a collection(target) in a database and return the directory object's id on success
-def AddDirectories(client, dbname, collname, domain, subdomain, directories):
+def AddDirectories(client, dbname, collname, domain, subdomain, directories, dir_or_param):
     # Split directories by " "
     directories_list = re.split(r"\s+", directories)
 
@@ -766,32 +774,52 @@ def AddDirectories(client, dbname, collname, domain, subdomain, directories):
     added_directories = []
     for subdomain_obj in doc["subdomains"]:
         if subdomain_obj["subdomain"] == subdomain:
-            try:
-                doc_directories = subdomain_obj["directories"]
-            except KeyError:
-                subdomain_obj["directories"] = []
-            for directory in directories_list:
-                if not IsDirectory(client, dbname, collname, domain, subdomain, directory)[1]:
-                    subdomain_obj["directories"].append({"directory": directory})
-                    added_directories.append(directory)
-            doc = UpdateDocumentByID(client, dbname, collname, doc["_id"], doc)
-            return added_directories
+            if dir_or_param == "directory":
+                try:
+                    doc_directories = subdomain_obj["directories"]
+                except KeyError:
+                    subdomain_obj["directories"] = []
+                for directory in directories_list:
+                    if not IsDirectory(client, dbname, collname, domain, subdomain, directory, dir_or_param)[1]:
+                        subdomain_obj["directories"].append({"directory": directory})
+                        added_directories.append(directory)
+                doc = UpdateDocumentByID(client, dbname, collname, doc["_id"], doc)
+                return added_directories
+            elif dir_or_param == "parameter":
+                try:
+                    doc_directories = subdomain_obj["parameters"]
+                except KeyError:
+                    subdomain_obj["parameters"] = []
+                for directory in directories_list:
+                    if not IsDirectory(client, dbname, collname, domain, subdomain, directory, dir_or_param)[1]:
+                        subdomain_obj["parameters"].append({"parameter": directory})
+                        added_directories.append(directory)
+                doc = UpdateDocumentByID(client, dbname, collname, doc["_id"], doc)
+                return added_directories
 
 # function RemoveDirectory to remove a directory from a collection(target) in a database and return the deleted directory object's _id and object itself on success
-def RemoveDirectory(client, dbname, collname, domain, subdomain, directory):
+def RemoveDirectory(client, dbname, collname, domain, subdomain, directory, dir_or_param):
     # Check if directory exists
-    docs, directoryexists = IsDirectory(client, dbname, collname, domain, subdomain, directory)
+    docs, directoryexists = IsDirectory(client, dbname, collname, domain, subdomain, directory, dir_or_param)
     if not directoryexists:
         return "", ""
     # Get the document object
     doc = QueryDocument(client, dbname, collname, {"domain": domain})
     # Remove directory
-    for directory_obj in doc["directories"]:
-        if directory_obj["directory"] == directory:
-            doc["directories"].remove(directory_obj)
-            doc = UpdateDocumentByID(client, dbname, collname, doc["_id"], doc)
-            return directory_obj, doc["_id"]
-    return "", ""
+    if dir_or_param == "directory":
+        for directory_obj in doc["directories"]:
+            if directory_obj["directory"] == directory:
+                doc["directories"].remove(directory_obj)
+                doc = UpdateDocumentByID(client, dbname, collname, doc["_id"], doc)
+                return directory_obj, doc["_id"]
+        return "", ""
+    elif dir_or_param == "parameter":
+        for directory_obj in doc["parameters"]:
+            if directory_obj["parameter"] == directory:
+                doc["parameters"].remove(directory_obj)
+                doc = UpdateDocumentByID(client, dbname, collname, doc["_id"], doc)
+                return directory_obj, doc["_id"]
+        return "", ""
 
 # function ListFiles to list all files in a directory in a subdomain in a domain in a collection(target) in a database and return the list of files
 def ListFiles(client, dbname, collname, domain, subdomain, directory):
