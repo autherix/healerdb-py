@@ -66,7 +66,7 @@ def multi_create(
     IsJson: bool = typer.Option(False, "--json", "-j", help="Output in JSON format"),
     ):
     """Create multiple directories"""
-    result = mod_dbquery.AddDirectories(client, database, target, domain, subdomain, directory)
+    result = mod_dbquery.AddDirectories(client, database, target, domain, subdomain, directory, "directory")
 
     if (IsJson or gIsJson) and type(result) is not dict:
         # Convert the list to a dictionary
