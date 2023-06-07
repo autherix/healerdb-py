@@ -22,10 +22,11 @@ def list(
     database: str = typer.Option(..., "--database", "-db", help="The database to list the URLs in", rich_help_panel="neccessary Information"),
     target: str = typer.Option(..., "--target", "-t", help="The target to list the URLs in", rich_help_panel="neccessary Information"),
     domain: str = typer.Option(..., "--domain", "-d", help="The domain to list the URLs in", rich_help_panel="neccessary Information"),
+    subdomain: str = typer.Option(..., "--subdomain", "-sub", help="The subdomain to list the URLs in", rich_help_panel="neccessary Information"),
     IsJson: bool = typer.Option(False, "--json", "-j", help="Output in JSON format"),
     ):
     """List all the URLs inside a domain"""
-    result = mod_dbquery.ListUrls(client, database, target, domain)[1]
+    result = mod_dbquery.ListUrls(client, database, target, domain, subdomain)[1]
 
     if (IsJson or gIsJson) and type(result) is not dict:
         # Convert the list to a dictionary
@@ -40,11 +41,12 @@ def exists(
     database: str = typer.Option(..., "--database", "-db", help="The database to check the URL in", rich_help_panel="neccessary Information"),
     target: str = typer.Option(..., "--target", "-t", help="The target to check the URL in", rich_help_panel="neccessary Information"),
     domain: str = typer.Option(..., "--domain", "-d", help="The domain to check the URL in", rich_help_panel="neccessary Information"),
+    subdomain: str = typer.Option(..., "--subdomain", "-sub", help="The subdomain to check the URL in", rich_help_panel="neccessary Information"),
     url: str = typer.Option(..., "--url", "-u", help="The URL to check", rich_help_panel="neccessary Information"),
     IsJson: bool = typer.Option(False, "--json", "-j", help="Output in JSON format"),
     ):
     """Check if a URL exists"""
-    result = mod_dbquery.IsUrl(client, database, target, domain, url)[1]
+    result = mod_dbquery.IsUrl(client, database, target, domain, subdomain, url)[1]
     
     if (IsJson or gIsJson) and type(result) is not dict:
         # Convert the list to a dictionary
@@ -58,12 +60,15 @@ def exists(
 def multi_create(
     database: str = typer.Option(..., "--database", "-db", help="The database to add the URLs to", rich_help_panel="neccessary Information"),
     target: str = typer.Option(..., "--target", "-t", help="The target to add the URLs to", rich_help_panel="neccessary Information"),
-    domain: str = typer.Option(..., "--domain", "-d", help="The domain to add the URLs to", rich_help_panel="neccessary Information"),
-    urls: str = typer.Option(..., "--urls", "-u", help="The URLs to add", rich_help_panel="neccessary Information"),
+    domain: str = typer.Option(..., "--domain", "-d", help="The domain to add the URLs to", 
+    rich_help_panel="neccessary Information"),
+    subdomain: str = typer.Option(..., "--subdomain", "-sub", help="The subdomain to add the URLs to"),
+    urls: str = typer.Option(..., "--urls", "-u", help="The URLs to add",
+    rich_help_panel="neccessary Information"),
     IsJson: bool = typer.Option(False, "--json", "-j", help="Output in JSON format"),
     ):
     """Add multiple URLs to a domain"""
-    result = mod_dbquery.AddUrls(client, database, target, domain, urls)
+    result = mod_dbquery.AddUrls(client, database, target, domain, subdomain, urls)
 
     if (IsJson or gIsJson) and type(result) is not dict:
         # Convert the list to a dictionary
@@ -78,11 +83,12 @@ def delete(
     database: str = typer.Option(..., "--database", "-db", help="The database to delete the URL from", rich_help_panel="neccessary Information"),
     target: str = typer.Option(..., "--target", "-t", help="The target to delete the URL from", rich_help_panel="neccessary Information"),
     domain: str = typer.Option(..., "--domain", "-d", help="The domain to delete the URL from", rich_help_panel="neccessary Information"),
+    subdomain: str = typer.Option(..., "--subdomain", "-sub", help="The subdomain to delete the URL from", rich_help_panel="neccessary Information"),
     url: str = typer.Option(..., "--url", "-u", help="The URL to delete", rich_help_panel="neccessary Information"),
     IsJson: bool = typer.Option(False, "--json", "-j", help="Output in JSON format"),
     ):
     """Delete a URL from a domain"""
-    result = mod_dbquery.RemoveUrl(client, database, target, domain, url)
+    result = mod_dbquery.RemoveUrl(client, database, target, domain, subdomain, url)
 
     if (IsJson or gIsJson) and type(result) is not dict:
         # Convert the list to a dictionary

@@ -72,9 +72,9 @@ app.add_typer(db_document.app, name="document", help="Manage the documents", no_
 app.add_typer(db_domain.app, name="domain", help="Manage the domains", no_args_is_help=True)
 app.add_typer(db_subdomain.app, name="subdomain", help="Manage the subdomains", no_args_is_help=True)
 app.add_typer(db_url.app, name="url", help="Manage the urls", no_args_is_help=True)
+app.add_typer(db_parameter.app, name="parameter_url", help="Manage the parameters", no_args_is_help=True)
 app.add_typer(db_directory.app, name="directory", help="Manage the directories", no_args_is_help=True)
 app.add_typer(db_file.app, name="file", help="Manage the files", no_args_is_help=True)
-app.add_typer(db_parameter.app, name="parameter", help="Manage the parameters", no_args_is_help=True)
 
 if __name__ == '__main__':
     app()

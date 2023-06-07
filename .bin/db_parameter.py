@@ -23,11 +23,12 @@ def list(
     target: str = typer.Option(..., "--target", "-t", help="The target to list the files in", rich_help_panel="neccessary Information"),
     domain: str = typer.Option(..., "--domain", "-d", help="The domain to list the files in", rich_help_panel="neccessary Information"),
     subdomain: str = typer.Option(..., "--subdomain", "-sub", help="The subdomain to list the files in", rich_help_panel="neccessary Information"),
+    url: str = typer.Option(..., "--url", "-u", help="The url to list the files in", rich_help_panel="neccessary Information"),
     IsJson: bool = typer.Option(False, "--json", "-j", help="Output in JSON format"),
     ):
     """List all the parameters for a file"""
 
-    result = mod_dbquery.ListDirectories(client, database, target, domain, subdomain, "parameter")[1]
+    result = mod_dbquery.ListUrlParameters(client, database, target, domain, subdomain, url)[1]
 
     if (IsJson or gIsJson) and type(result) is not dict:
         # Convert the list to a dictionary
@@ -43,12 +44,13 @@ def multi_create(
     target: str = typer.Option(..., "--target", "-t", help="The target to create the files in", rich_help_panel="neccessary Information"),
     domain: str = typer.Option(..., "--domain", "-d", help="The domain to create the files in", rich_help_panel="neccessary Information"),
     subdomain: str = typer.Option(..., "--subdomain", "-sub", help="The subdomain to create the files in", rich_help_panel="neccessary Information"),
+    url: str = typer.Option(..., "--url", "-u", help="The url to create the files in", rich_help_panel="neccessary Information"),
     parameters: str = typer.Option(..., "--parameter", "-p", help="The parameters to create", rich_help_panel="neccessary Information"),
     IsJson: bool = typer.Option(False, "--json", "-j", help="Output in JSON format"),
     ):
     """Create multiple parameters"""
 
-    result = mod_dbquery.AddDirectories(client, database, target, domain, subdomain, parameters, "parameter")
+    result = mod_dbquery.AddUrlParameters(client, database, target, domain, subdomain, url, parameters)
 
     if (IsJson or gIsJson) and type(result) is not dict:
         # Convert the list to a dictionary
@@ -64,12 +66,13 @@ def exists(
     target: str = typer.Option(..., "--target", "-t", help="The target to check the parameters in", rich_help_panel="neccessary Information"),
     domain: str = typer.Option(..., "--domain", "-d", help="The domain to check the parameters in", rich_help_panel="neccessary Information"),
     subdomain: str = typer.Option(..., "--subdomain", "-sub", help="The subdomain to check the parameters in", rich_help_panel="neccessary Information"),
+    url: str = typer.Option(..., "--url", "-u", help="The url to check the parameters in", rich_help_panel="neccessary Information"),
     parameter: str = typer.Option(..., "--parameter", "-p", help="The parameter to check", rich_help_panel="neccessary Information"),
     IsJson: bool = typer.Option(False, "--json", "-j", help="Output in JSON format"),
     ):
     """Check if a parameter exists"""
 
-    result = mod_dbquery.IsDirectory(client, database, target, domain, subdomain, parameter, "parameter")
+    result = mod_dbquery.IsUrlParameter(client, database, target, domain, subdomain, url, parameter)
 
     if (IsJson or gIsJson) and type(result) is not dict:
         # Convert the list to a dictionary
@@ -85,12 +88,13 @@ def delete(
     target: str = typer.Option(..., "--target", "-t", help="The target to delete the parameters in", rich_help_panel="neccessary Information"),
     domain: str = typer.Option(..., "--domain", "-d", help="The domain to delete the parameters in", rich_help_panel="neccessary Information"),
     subdomain: str = typer.Option(..., "--subdomain", "-sub", help="The subdomain to delete the parameters in", rich_help_panel="neccessary Information"),
+    url: str = typer.Option(..., "--url", "-u", help="The url to delete the parameters in", rich_help_panel="neccessary Information"),
     parameter: str = typer.Option(..., "--parameter", "-p", help="The parameter to delete", rich_help_panel="neccessary Information"),
     IsJson: bool = typer.Option(False, "--json", "-j", help="Output in JSON format"),
     ):
     """Delete a parameter"""
 
-    result = mod_dbquery.RemoveDirectory(client, database, target, domain, subdomain, parameter, "parameter")
+    result = mod_dbquery.RemoveUrlParameter(client, database, target, domain, subdomain, url, parameter)
 
     if (IsJson or gIsJson) and type(result) is not dict:
         # Convert the list to a dictionary
