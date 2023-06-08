@@ -1233,3 +1233,54 @@ def GetInfo(client, dbname, collname, filterjson=None, *args):
     doc = GetFromJson(doc, *args)
     return doc
 
+# function IsTargetInfo_h1, gets client, dbname, collname and target_handle, iterates over the list of documents in the collection and returns true if target already exists
+def IsTargetInfo_h1(client, dbname, collname, target_handle):
+    # Check if collection exists
+    collexists = IsCollection(client, dbname, collname)
+    if not collexists:
+        return False
+    # Get the list of documents
+    docs = ListDocuments(client, dbname, collname)
+    # Iterate over the list of documents
+    for doc in docs:
+        # In that json object select attributes->handle
+        try:
+            handle = doc["attributes"]["handle"]
+        except KeyError:
+            continue
+        # If handle is equal to target_handle then return True
+        if handle == target_handle:
+            return True
+    # If not found then return False
+    return False
+
+# function AddTargetInfo_h1, gets client, dbname, collname and a json object and adds the json object to the collection if a document with the same handle doesn't exist, if it exists then it updates the document
+def AddTargetInfo_h1(client, dbname, collname, jsonobj):
+    # Check if collection exists
+    collexists = IsCollection(client, dbname, collname)
+    if not collexists:
+        # Create collection
+        CreateCollection(client, dbname, collname)
+    # Get the list of documents
+    docs = ListDocuments(client, dbname, collname)
+    
+    jsonobj = json.loads(jsonobj)
+    jsonobj_handle = jsonobj["attributes"]["handle"]
+    
+    # Iterate over the list of documents
+    for doc_id in docs:
+        # Get the document object
+        doc = QueryDocument(client, dbname, collname, {"_id": doc_id})
+        # In that json object select attributes->handle
+        try:
+            handle = doc["attributes"]["handle"]
+        except KeyError:
+            continue
+        if handle == jsonobj_handle:
+            new_doc = UpdateDocumentByID(client, dbname, collname, doc["_id"], jsonobj)
+            new_doc_id = new_doc["_id"]
+            return new_doc_id
+    # If not found then add the document
+    new_doc_id = AddDocument(client, dbname, collname, jsonobj)
+    return new_doc_id
+
