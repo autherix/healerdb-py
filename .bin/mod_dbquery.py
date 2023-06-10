@@ -1233,6 +1233,29 @@ def GetInfo(client, dbname, collname, filterjson=None, *args):
     doc = GetFromJson(doc, *args)
     return doc
 
+# function ListTargetInfo_h1, gets client, dbname, collname and returns the list of target handles in the collection
+def ListTargetInfo_h1(client, dbname, collname):
+    # Check if collection exists
+    collexists = IsCollection(client, dbname, collname)
+    if not collexists:
+        return ""
+    # Get the list of documents
+    docs = ListDocuments(client, dbname, collname)
+    # Iterate over the list of documents
+    handles_list = []
+    for doc_id in docs:
+        # Get the document object
+        doc = QueryDocument(client, dbname, collname, {"_id": doc_id})
+        # In that json object select attributes->handle
+        try:
+            handle = doc["attributes"]["handle"]
+        except KeyError:
+            continue
+        # Append handle to handles_list
+        handles_list.append(handle)
+    # Return handles_list
+    return handles_list
+
 # function IsTargetInfo_h1, gets client, dbname, collname and target_handle, iterates over the list of documents in the collection and returns true if target already exists
 def IsTargetInfo_h1(client, dbname, collname, target_handle):
     # Check if collection exists
@@ -1284,3 +1307,172 @@ def AddTargetInfo_h1(client, dbname, collname, jsonobj):
     new_doc_id = AddDocument(client, dbname, collname, jsonobj)
     return new_doc_id
 
+# function GetTargetInfo_h1, gets client, dbname, collname and target_handle, iterates over the list of documents in the collection and returns the document with the same handle if found
+def GetTargetInfo_h1(client, dbname, collname, target_handle):
+    # Check if collection exists
+    collexists = IsCollection(client, dbname, collname)
+    if not collexists:
+        raise Exception("Collection does not exist")
+    db = client[dbname]
+    coll = db[collname]
+    docs = coll.find()
+    for doc in docs:
+        # In that json object select attributes->handle
+        try:
+            handle = doc["attributes"]["handle"]
+        except KeyError:
+            continue
+        # If handle is equal to target_handle then return the document
+        if handle == target_handle:
+            return doc
+    # If not found then return None
+    return ""
+
+# function RemoveTargetInfo_h1, gets client, dbname, collname and target_handle, iterates over the list of documents in the collection and removes the document with the same handle if found
+def RemoveTargetInfo_h1(client, dbname, collname, target_handle):
+    # Check if collection exists
+    collexists = IsCollection(client, dbname, collname)
+    if not collexists:
+        return ""
+    # Get the list of documents
+    docs = ListDocuments(client, dbname, collname)
+    # Iterate over the list of documents
+    for doc_id in docs:
+        # Get the document object
+        doc = QueryDocument(client, dbname, collname, {"_id": doc_id})
+        # In that json object select attributes->handle
+        try:
+            handle = doc["attributes"]["handle"]
+        except KeyError:
+            continue
+        # If handle is equal to target_handle then remove the document
+        if handle == target_handle:
+            RemoveDocument(client, dbname, collname, doc["_id"])
+            return doc["attributes"]["handle"]
+    # If not found then return None
+    return ""
+
+# function ListTargetInfo_bc, gets client, dbname, collname and returns the list of target handles in the collection
+def ListTargetInfo_bc(client, dbname, collname):
+    # Check if collection exists
+    collexists = IsCollection(client, dbname, collname)
+    if not collexists:
+        return ""
+    # Get the list of documents
+    docs = ListDocuments(client, dbname, collname)
+    # Iterate over the list of documents
+    handles_list = []
+    for doc_id in docs:
+        # Get the document object
+        doc = QueryDocument(client, dbname, collname, {"_id": doc_id})
+        # In that json object select >code
+        try:
+            handle = doc["code"]
+        except KeyError:
+            continue
+        # Append handle to handles_list
+        handles_list.append(handle)
+    # Return handles_list
+    return handles_list
+
+# function IsTargetInfo_bc, gets client, dbname, collname and target_handle, iterates over the list of documents in the collection and returns true if target already exists
+def IsTargetInfo_bc(client, dbname, collname, target_handle):
+    # Check if collection exists
+    collexists = IsCollection(client, dbname, collname)
+    if not collexists:
+        return False
+    # Get the list of documents
+    docs = ListDocuments(client, dbname, collname)
+    # Iterate over the list of documents
+    for doc in docs:
+        # In that json object select >code
+        try:
+            handle = doc["code"]
+        except KeyError:
+            continue
+        # If handle is equal to target_handle then return True
+        if handle == target_handle:
+            return True
+    # If not found then return False
+    return False
+
+# function AddTargetInfo_bc, gets client, dbname, collname and a json object and adds the json object to the collection if a document with the same handle doesn't exist, if it exists then it updates the document
+def AddTargetInfo_bc(client, dbname, collname, jsonobj_addr):
+    f = open(jsonobj_addr, "r")
+    jsonobj = json.load(f)
+    f.close()
+    # remove the file
+    os.remove(jsonobj_addr)
+    # Check if collection exists
+    collexists = IsCollection(client, dbname, collname)
+    if not collexists:
+        # Create collection
+        CreateCollection(client, dbname, collname)
+    # Get the list of documents
+    docs = ListDocuments(client, dbname, collname)
+    
+    jsonobj_handle = jsonobj["code"]
+    
+    # Iterate over the list of documents
+    for doc_id in docs:
+        # Get the document object
+        doc = QueryDocument(client, dbname, collname, {"_id": doc_id})
+        # In that json object select attributes->handle
+        try:
+            handle = doc["code"]
+        except KeyError:
+            continue
+        if handle == jsonobj_handle:
+            new_doc = UpdateDocumentByID(client, dbname, collname, doc["_id"], jsonobj)
+            new_doc_id = new_doc["_id"]
+            return new_doc_id
+    # If not found then add the document
+    new_doc_id = AddDocument(client, dbname, collname, jsonobj)
+    return new_doc_id
+
+# function GetTargetInfo_bc, gets client, dbname, collname and target_handle, iterates over the list of documents in the collection and returns the document with the same handle if found
+def GetTargetInfo_bc(client, dbname, collname, target_handle):
+    # Check if collection exists
+    collexists = IsCollection(client, dbname, collname)
+    if not collexists:
+        raise Exception("Collection does not exist")
+    db = client[dbname]
+    coll = db[collname]
+    docs = coll.find()
+    for doc in docs:
+        # In that json object select >code
+        try:
+            handle = doc["code"]
+        except KeyError:
+            continue
+        # If handle is equal to target_handle then return the document
+        if handle == target_handle:
+            return doc
+    # If not found then return None
+    return ""
+
+# function RemoveTargetInfo_bc, gets client, dbname, collname and target_handle, iterates over the list of documents in the collection and removes the document with the same handle if found
+def RemoveTargetInfo_bc(client, dbname, collname, target_handle):
+    # Check if collection exists
+    collexists = IsCollection(client, dbname, collname)
+    if not collexists:
+        return ""
+    # Get the list of documents
+    docs = ListDocuments(client, dbname, collname)
+    # Iterate over the list of documents
+    for doc_id in docs:
+        # Get the document object
+        doc = QueryDocument(client, dbname, collname, {"_id": doc_id})
+        # In that json object select >code
+        try:
+            handle = doc["code"]
+        except KeyError:
+            continue
+        # If handle is equal to target_handle then remove the document
+        if handle == target_handle:
+            RemoveDocument(client, dbname, collname, doc["_id"])
+            return doc["code"]
+    # If not found then return None
+    return ""
+
+#

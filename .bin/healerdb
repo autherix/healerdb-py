@@ -59,6 +59,7 @@ import db_directory
 import db_file
 import db_parameter
 import db_targetinfo_h1
+import db_targetinfo_bc
 
 # Create the typer app, and set to show the help message if no command is passed
 app = typer.Typer(help="HealerDB is a CLI tool to manage the database of Healer", no_args_is_help=True)
@@ -76,7 +77,8 @@ app.add_typer(db_url.app, name="url", help="Manage the urls", no_args_is_help=Tr
 app.add_typer(db_parameter.app, name="parameter_url", help="Manage the parameters", no_args_is_help=True)
 app.add_typer(db_directory.app, name="directory", help="Manage the directories", no_args_is_help=True)
 app.add_typer(db_file.app, name="file", help="Manage the files", no_args_is_help=True)
-app.add_typer(db_targetinfo_h1.app, name="h1_targetinfo", help="Manage the targets information in bug bounty platforms", no_args_is_help=True)
+app.add_typer(db_targetinfo_h1.app, name="h1_targetinfo", help="Manage the targets information in hackerone platform", no_args_is_help=True)
+app.add_typer(db_targetinfo_bc.app, name="bc_targetinfo", help="Manage the targets information in bugcrowd platform", no_args_is_help=True)
 
 if __name__ == '__main__':
     app()

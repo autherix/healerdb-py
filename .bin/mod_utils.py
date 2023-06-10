@@ -1,10 +1,11 @@
 import os, inspect, yaml, sys, json, gjson
-from rich import print
+# from rich import print
 from rich.console import Console
 from rich.markdown import Markdown
 from rich.theme import Theme
 from rich.emoji import Emoji
 from mongoquery import Query, QueryError
+from bson import ObjectId
 
 sepchr = "▂"
 sepchr_up = "▔"
@@ -229,3 +230,10 @@ def GetFromJson2(jsondoc, path):
         return None, None
     return jsondoc, None
 
+def convert_dict_to_json(data):
+    def json_encoder(obj):
+        if isinstance(obj, ObjectId):
+            return str(obj)
+        raise TypeError(f"Object of type {type(obj)} is not JSON serializable")
+
+    return json.dumps(data, default=json_encoder)

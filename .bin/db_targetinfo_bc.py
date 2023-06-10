@@ -7,7 +7,7 @@ from bson import ObjectId
 from rich.console import Console
 
 # console = Console()
-app = typer.Typer(help="Manage the Targets Information in Hackerone platforms", no_args_is_help=True)
+app = typer.Typer(help="Manage the Targets Information in BugCrowd platform", no_args_is_help=True)
 
 @app.callback()
 def callback(
@@ -28,8 +28,8 @@ def exists(
     target_handle: str = typer.Option(..., "--handle", help="The handle of the target", rich_help_panel="neccessary Information"),
     IsJson: bool = typer.Option(False, "--json", "-j", help="Output in JSON format"),
     ):
-    """Check if a HackerOne target exists in the database"""
-    result = mod_dbquery.IsTargetInfo_h1(client, dbname, colname, target_handle)
+    """Check if a bugcrowd target exists in the database"""
+    result = mod_dbquery.IsTargetInfo_bc(client, dbname, colname, target_handle)
 
     if (IsJson or gIsJson) and type(result) is not dict:
         # Convert the list to a dictionary
@@ -43,11 +43,11 @@ def exists(
 def create(
     dbname: str = typer.Option(..., "--database", "-db", help="The database to list the documents IDs from", rich_help_panel="neccessary Information"),
     colname: str = typer.Option(..., "--collection", "-coll", help="The collection to list the documents IDs from", rich_help_panel="neccessary Information"),
-    doc: str = typer.Option(..., "--document", "-doc", help="The document to insert", rich_help_panel="neccessary Information"),
+    doc: str = typer.Option(..., "--document", "-doc", help="The document file address to insert its contents", rich_help_panel="neccessary Information"),
     IsJson: bool = typer.Option(False, "--json", "-j", help="Output in JSON format"),
     ):
-    """Create/Update a HackerOne target in the database"""
-    result = mod_dbquery.AddTargetInfo_h1(client, dbname, colname, doc)
+    """Create/Update a bugcrowd target in the database"""
+    result = mod_dbquery.AddTargetInfo_bc(client, dbname, colname, doc)
 
     if (IsJson or gIsJson) and type(result) is not dict:
         # Convert the list to a dictionary
@@ -64,7 +64,7 @@ def list(
     IsJson: bool = typer.Option(False, "--json", "-j", help="Output in JSON format"),
     ):
     """List the documents handles in a collection"""
-    result = mod_dbquery.ListTargetInfo_h1(client, dbname, colname)
+    result = mod_dbquery.ListTargetInfo_bc(client, dbname, colname)
 
     if (IsJson or gIsJson) and type(result) is not dict:
         # Convert the list to a dictionary
@@ -84,8 +84,8 @@ def get(
     target_handle: str = typer.Option(..., "--handle", help="The handle of the target", rich_help_panel="neccessary Information"),
     IsJson: bool = typer.Option(False, "--json", "-j", help="Output in JSON format"),
     ):
-    """Get a HackerOne target from the database"""
-    result = mod_dbquery.GetTargetInfo_h1(client, dbname, colname, target_handle)
+    """Get a bugcrowd target from the database"""
+    result = mod_dbquery.GetTargetInfo_bc(client, dbname, colname, target_handle)
 
     if (IsJson or gIsJson) and type(result) is not dict:
         # Convert the list to a dictionary
@@ -105,8 +105,8 @@ def delete(
     target_handle: str = typer.Option(..., "--handle", help="The handle of the target", rich_help_panel="neccessary Information"),
     IsJson: bool = typer.Option(False, "--json", "-j", help="Output in JSON format"),
     ):
-    """Delete a HackerOne target from the database"""
-    result = mod_dbquery.RemoveTargetInfo_h1(client, dbname, colname, target_handle)
+    """Delete a bugcrowd target from the database"""
+    result = mod_dbquery.RemoveTargetInfo_bc(client, dbname, colname, target_handle)
 
     if (IsJson or gIsJson) and type(result) is not dict:
         # Convert the list to a dictionary

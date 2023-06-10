@@ -34,6 +34,9 @@ def list(
         result = { "result": result }
         # Convert the dictionary to a JSON string
         result = json.dumps(result, indent=4)
+    elif type(result) is dict:
+        # load as bson
+        result = convert_dict_to_json(result)
 
     print(result)
 
@@ -76,6 +79,9 @@ def multi_create(
         result = { "result": result }
         # Convert the dictionary to a JSON string
         result = json.dumps(result, indent=4)
+    elif type(result) is dict:
+        # load as bson
+        result = convert_dict_to_json(result)
 
     print(result)
 
@@ -97,6 +103,9 @@ def delete(
         result = { "result": result }
         # Convert the dictionary to a JSON string
         result = json.dumps(result, indent=4)
+    elif type(result) is dict:
+        # load as bson
+        result = convert_dict_to_json(result)
 
     print(result)
 
