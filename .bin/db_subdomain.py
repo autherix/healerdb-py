@@ -106,7 +106,7 @@ def multi_create(
     database: str = typer.Option(..., "--database", "-db", help="The database to create the subdomains in", rich_help_panel="neccessary Information"),
     target: str = typer.Option(..., "--target", "-t", help="The target to create the subdomains in", rich_help_panel="neccessary Information"),
     domain: str = typer.Option(..., "--domain", "-d", help="The domain to create the subdomains in", rich_help_panel="neccessary Information"),
-    subdomains: str = typer.Option(..., "--subdomains", "-sub", help="The subdomains to create", rich_help_panel="neccessary Information"),
+    subdomains: str = typer.Option(..., "--subdomains", "-sub", help="The subdomains to create/ File containing the list of subdomains(should start with /tmp/)", rich_help_panel="neccessary Information"),
     IsJson: bool = typer.Option(False, "--json", "-j", help="Output in JSON format"),
     ):
     """Create multiple subdomains"""

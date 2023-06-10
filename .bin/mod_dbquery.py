@@ -79,6 +79,7 @@ def PurgeDatabases(client):
     dblist.remove("admin")
     dblist.remove("config")
     dblist.remove("local")
+    dblist.remove("bbplats")
     for db in dblist:
         client.drop_database(db)
         deleted_dbs.append(db)
@@ -425,6 +426,14 @@ def AddSubdomain(client: MongoClient, dbname: str, collname: str, domain: str, s
 
 # function AddSubdomains to add a list of subdomains to a collection(target) in a database and return the list of subdomain objects' id on success
 def AddSubdomains(client: MongoClient, dbname: str, collname: str, domain: str, subdomains: str):
+    # if subdomains starts with "/tmp/", read the file and get the content and store each line's content as an item in subdomains list
+    if subdomains.startswith("/tmp/"):
+        # Read the file
+        with open(subdomains, "r") as f:
+            subdomains = f.read()
+    # Make all of them seperated by space 
+    subdomains = subdomains.replace("\n", " ")
+
     # Split subdomains string into a list of subdomains, use space as delimiter(ant space character, one space, two spaces, tab, etc.)
     subdomains = re.split(r'\s+', subdomains)
     # Create an empty list to store added subdomains
