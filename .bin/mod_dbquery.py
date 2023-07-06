@@ -262,7 +262,7 @@ def ListDomains(client, dbname, collname):
     # Check if collection exists
     collexists = IsCollection(client, dbname, collname)
     if not collexists:
-        raise Exception("Collection does not exist")
+        return "", []
     db = client[dbname]
     coll = db[collname]
     docs = coll.find()
@@ -1321,7 +1321,7 @@ def GetTargetInfo_h1(client, dbname, collname, target_handle):
     # Check if collection exists
     collexists = IsCollection(client, dbname, collname)
     if not collexists:
-        raise Exception("Collection does not exist")
+        return ""
     db = client[dbname]
     coll = db[collname]
     docs = coll.find()
@@ -1444,7 +1444,7 @@ def GetTargetInfo_bc(client, dbname, collname, target_handle):
     # Check if collection exists
     collexists = IsCollection(client, dbname, collname)
     if not collexists:
-        raise Exception("Collection does not exist")
+        return ""
     db = client[dbname]
     coll = db[collname]
     docs = coll.find()
