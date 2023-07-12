@@ -292,6 +292,9 @@ def AddDomain(client, dbname, collname, domain):
     docs, domainexists = IsDomain(client, dbname, collname, domain)
     if domainexists:
         return ""
+    # remove first *. from domain
+    if domain.startswith("*."):
+        domain = domain[2:]
     # Add domain
     doc = {"domain": domain}
     doc_id = AddDocument(client, dbname, collname, doc)
@@ -436,6 +439,8 @@ def AddSubdomains(client: MongoClient, dbname: str, collname: str, domain: str, 
 
     # Split subdomains string into a list of subdomains, use space as delimiter(ant space character, one space, two spaces, tab, etc.)
     subdomains = re.split(r'\s+', subdomains)
+    # remove empty or " " items
+    subdomains = list(filter(lambda x: x != "" and x != " ", subdomains))
     # Create an empty list to store added subdomains
     
     # Check if collection exists
@@ -464,9 +469,10 @@ def AddSubdomains(client: MongoClient, dbname: str, collname: str, domain: str, 
                 doc_subdomains = doc["subdomains"]
             except KeyError:
                 doc["subdomains"] = []
-            doc["subdomains"].append({"subdomain": subdomain})
-            # doc["subdomains"].append({"subdomain": subdomain, "live": live})
-            updated_doc = UpdateDocumentByID(client, dbname, collname, doc["_id"], doc)
+            if subdomain != "":
+                doc["subdomains"].append({"subdomain": subdomain})
+                # doc["subdomains"].append({"subdomain": subdomain, "live": live})
+                updated_doc = UpdateDocumentByID(client, dbname, collname, doc["_id"], doc)
             # If doc is not empty, add it to the list
             added_subdomains.append(subdomain)
     return added_subdomains
